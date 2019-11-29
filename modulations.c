@@ -48,506 +48,81 @@ typedef struct {
     netopt_val_t opt[6];
 } netopt_setting_t;
 
-static const netopt_setting_t settings[] = {
-#ifdef TEST_OFDM
-    {
-        .name = "OFDM-BPSKx4, opt=1",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_IEEE802154_PHY,
-                .data = IEEE802154_PHY_OFDM,
-                .data_len = 1
-            },
-            {
-                .opt  = NETOPT_OFDM_MCS,
-                .data = 0,
-                .data_len = 1
-            },
-            {
-                .opt  = NETOPT_OFDM_OPTION,
-                .data = 1,
-                .data_len = 1
-            },
-        },
-        .opt_num = 3
-    },
-    {
-        .name = "OFDM-BPSKx4, opt=2",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_OFDM_OPTION,
-                .data = 2,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "OFDM-BPSKx2, opt=1",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_OFDM_MCS,
-                .data = 1,
-                .data_len = 1
-            },
-            {
-                .opt  = NETOPT_OFDM_OPTION,
-                .data = 1,
-                .data_len = 1
-            },
-        },
-        .opt_num = 2
-    },
-    {
-        .name = "OFDM-BPSKx2, opt=2",
-        .opt = {
-            {
-                .opt  = NETOPT_OFDM_OPTION,
-                .data = 2,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "OFDM-BPSKx2, opt=3",
-        .opt = {
-            {
-                .opt  = NETOPT_OFDM_OPTION,
-                .data = 3,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-#endif /* OFDM */
-#ifdef TEST_FSK
-    {
-        .name = "2FSK, 50 kHz",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_IEEE802154_PHY,
-                .data = IEEE802154_PHY_FSK,
-                .data_len = 1
-            },
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 50,
-                .data_len = 2
-            },
-            {
-                .opt = NETOPT_FSK_MODULATION_ORDER,
-                .data = 2,
-                .data_len = 1
-            },
-        },
-        .opt_num = 3
-    },
-    {
-        .name = "2FSK, 150 kHz, NRNSC",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 150,
-                .data_len = 2
-            },
-            {
-                .opt  = NETOPT_FSK_FEC,
-                .data = IEEE802154_FEC_NRNSC,
-                .data_len = 2
-            },
-        },
-        .opt_num = 2
-    },
-    {
-        .name = "2FSK, 150 kHz, RSC",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 150,
-                .data_len = 2
-            },
-            {
-                .opt  = NETOPT_FSK_FEC,
-                .data = IEEE802154_FEC_RSC,
-                .data_len = 2
-            },
-        },
-        .opt_num = 2
-    },
-    {
-        .name = "2FSK, 150 kHz",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 150,
-                .data_len = 2
-            },
-            {
-                .opt  = NETOPT_FSK_FEC,
-                .data = IEEE802154_FEC_NONE,
-                .data_len = 2
-            },
-        },
-        .opt_num = 2
-    },
-    {
-        .name = "2FSK, 300 kHz",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 300,
-                .data_len = 2
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 24/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 400,
-                .data_len = 2
-            },
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 24,
-                .data_len = 1
-            },
-        },
-        .opt_num = 2
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 32/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 32,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 48/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 48,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 64/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 64,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 80/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 80,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 96/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 96,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 112/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 112,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "2FSK, 400 kHz, idx 128/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 128,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 50 kHz",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_IEEE802154_PHY,
-                .data = IEEE802154_PHY_FSK,
-                .data_len = 1
-            },
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 50,
-                .data_len = 2
-            },
-            {
-                .opt = NETOPT_FSK_MODULATION_ORDER,
-                .data = 4,
-                .data_len = 1
-            },
-        },
-        .opt_num = 3
-    },
-    {
-        .name = "4FSK, 150 kHz",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 150,
-                .data_len = 2
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 300 kHz",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 300,
-                .data_len = 2
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 400 kHz, idx 24/64",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_FSK_SRATE,
-                .data = 400,
-                .data_len = 2
-            },
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 24,
-                .data_len = 1
-            },
-            {
-                .opt  = NETOPT_FSK_FEC,
-                .data = IEEE802154_FEC_NRNSC,
-                .data_len = 2
-            },
+typedef struct {
+    const char name[32];
+    netopt_t opt;
+    size_t data_len;
+    uint8_t num_settings;
+    struct {
+        const char name[32];
+        uint32_t data;
+    } settings[];
+} netopt_list_t;
 
-        },
-        .opt_num = 3
-    },
-    {
-        .name = "4FSK, 400 kHz, idx 32/64",
-        .opt =
+static const netopt_list_t ofdm_options = {
+    .name = "option",
+    .opt  = NETOPT_OFDM_OPTION,
+    .data_len = 1,
+    .num_settings = 4,
+    .settings = {
         {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 32,
-                .data_len = 1
-            },
+            .name = "1",
+            .data = 1
         },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 400 kHz, idx 48/64",
-        .opt =
         {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 48,
-                .data_len = 1
-            },
+            .name = "2",
+            .data = 2
         },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 400 kHz, idx 64/64",
-        .opt =
         {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 64,
-                .data_len = 1
-            },
+            .name = "3",
+            .data = 3
         },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 400 kHz, idx 80/64",
-        .opt =
         {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 80,
-                .data_len = 1
-            },
+            .name = "4",
+            .data = 4
         },
-        .opt_num = 1
     },
-    {
-        .name = "4FSK, 400 kHz, idx 96/64",
-        .opt =
+};
+
+static const netopt_list_t ofdm_mcs = {
+    .name = "MCS",
+    .opt  = NETOPT_OFDM_MCS,
+    .data_len = 1,
+    .num_settings = 7,
+    .settings = {
         {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 96,
-                .data_len = 1
-            },
+            .name = "BPSK, ½ rate, 4x rep",
+            .data = 0
         },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 400 kHz, idx 112/64",
-        .opt =
         {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 112,
-                .data_len = 1
-            },
+            .name = "BPSK, ½ rate, 2x rep",
+            .data = 1
         },
-        .opt_num = 1
-    },
-    {
-        .name = "4FSK, 400 kHz, idx 128/64",
-        .opt =
         {
-            {
-                .opt  = NETOPT_FSK_MODULATION_INDEX,
-                .data = 128,
-                .data_len = 1
-            },
+            .name = "QPSK, ½ rate, 2x rep",
+            .data = 2
         },
-        .opt_num = 1
-    },
-#endif /* FSK */
-#ifdef TEST_OQPSK
-    {
-        .name = "O-QPSK, rate mode 4",
-        .opt =
         {
-            {
-                .opt  = NETOPT_IEEE802154_PHY,
-                .data = IEEE802154_PHY_OQPSK,
-                .data_len = 1
-            },
-            {
-                .opt  = NETOPT_OQPSK_RATE,
-                .data = 4,
-                .data_len = 1
-            },
+            .name = "QPSK, ½ rate",
+            .data = 3
         },
-        .opt_num = 2
-    },
-    {
-        .name = "O-QPSK, rate mode 3",
-        .opt =
         {
-            {
-                .opt  = NETOPT_OQPSK_RATE,
-                .data = 3,
-                .data_len = 1
-            },
+            .name = "QPSK, ¾ rate",
+            .data = 4
         },
-        .opt_num = 1
-    },
-    {
-        .name = "O-QPSK, rate mode 2",
-        .opt =
         {
-            {
-                .opt  = NETOPT_OQPSK_RATE,
-                .data = 2,
-                .data_len = 1
-            },
+            .name = "16-QAM, ½ rate",
+            .data = 5
         },
-        .opt_num = 1
-    },
-    {
-        .name = "O-QPSK legacy",
-        .opt =
         {
-            {
-                .opt  = NETOPT_OQPSK_RATE,
-                .data = IEEE802154_OQPSK_FLAG_LEGACY,
-                .data_len = 1
-            },
+            .name = "16-QAM, ¾ rate",
+            .data = 6
         },
-        .opt_num = 1
     },
-    {
-        .name = "O-QPSK, rate mode 1",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_OQPSK_RATE,
-                .data = 1,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-    {
-        .name = "O-QPSK, rate mode 0",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_OQPSK_RATE,
-                .data = 0,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
-#endif /* O-QPSK */
 };
 
 static unsigned idx;
-static test_result_t results[GNRC_NETIF_NUMOF][ARRAY_SIZE(settings)];
+static test_result_t *results[GNRC_NETIF_NUMOF];
 
 static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
 {
@@ -558,9 +133,68 @@ static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
     }
 }
 
+static unsigned _get_OFDM_combinations(void)
+{
+    static unsigned combinations;
+
+    if (combinations == 0) {
+        combinations = ofdm_options.num_settings * ofdm_mcs.num_settings;
+    }
+
+    return combinations;
+}
+
+static void _set_from_netopt_list(const netopt_list_t *l, unsigned idx, bool do_set) {
+    printf("%s = %s", l->name, l->settings[idx].name);
+
+    if (do_set) {
+        _netapi_set_forall(l->opt, &l->settings[idx].data, l->data_len);
+    }
+}
+
+static int modulation_set_OFDM(unsigned setting, bool do_set)
+{
+    for (unsigned i = 0; i < ofdm_options.num_settings; ++i) {
+        for (unsigned j = 0; j < ofdm_mcs.num_settings; ++j) {
+            if (setting-- == 0) {
+                printf("OFDM ");
+                _set_from_netopt_list(&ofdm_options, i, do_set);
+                printf(", ");
+                _set_from_netopt_list(&ofdm_mcs, j, do_set);
+                return 0;
+            }
+        }
+    }
+
+    return -1;
+}
+
+static unsigned _get_combinations(void)
+{
+    return _get_OFDM_combinations();
+}
+
+static void _set_modulation(void)
+{
+    printf("[%d] Set ", idx);
+
+    if (idx == 0) {
+        uint32_t data = IEEE802154_PHY_OFDM;
+        _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
+    }
+
+    modulation_set_OFDM(idx, true);
+    puts("");
+}
+
 void range_test_begin_measurement(kernel_pid_t netif)
 {
     netif -= 6; // XXX
+
+    if (results[netif] == NULL) {
+        results[netif] = calloc(_get_combinations(), sizeof(test_result_t));
+    }
+
     results[netif][idx].pkts_send++;
     if (results[netif][idx].rtt_ticks == 0) {
         results[netif][idx].rtt_ticks = xtimer_ticks_from_usec(INITIAL_FRAME_DELAY_US).ticks32;
@@ -589,35 +223,34 @@ void range_test_add_measurement(kernel_pid_t netif, int rssi_local, int rssi_rem
 void range_test_print_results(void)
 {
     printf("modulation;iface;sent;received;RSSI_local;RSSI_remote;RTT\n");
-    for (unsigned i = 0; i < ARRAY_SIZE(settings); ++i) {
+    for (unsigned i = 0; i < _get_combinations(); ++i) {
         for (int j = 0; j < GNRC_NETIF_NUMOF; ++j) {
             xtimer_ticks32_t ticks = {
                 .ticks32 = results[j][i].rtt_ticks
             };
 
-            printf("\"%s\";", settings[i].name);
+            printf("\"");
+            modulation_set_OFDM(i, false);
+            printf("\";");
+
             printf("%d;", j);
             printf("%d;", results[j][i].pkts_send);
             printf("%d;", results[j][i].pkts_rcvd);
             printf("%ld;", results[j][i].rssi_sum[0] / results[j][i].pkts_rcvd);
             printf("%ld;", results[j][i].rssi_sum[1] / results[j][i].pkts_rcvd);
-            printf("%ld\n", xtimer_usec_from_ticks(ticks));
+            printf("%ld", xtimer_usec_from_ticks(ticks));
+            printf("\t|\t%d %%\n", (100 * results[j][i].pkts_rcvd) / results[j][i].pkts_send);
+
+            memset(&results[j][i], 0, sizeof(results[j][i]));
         }
     }
-    memset(results, 0, sizeof(results));
-}
 
-static void _set_modulation(void) {
-    printf("switching to %s\n", settings[idx].name);
-
-    for (unsigned j = 0; j < settings[idx].opt_num; ++j) {
-        _netapi_set_forall(settings[idx].opt[j].opt, &settings[idx].opt[j].data, settings[idx].opt[j].data_len);
-    }
+    range_test_start();
 }
 
 bool range_test_set_next_modulation(void)
 {
-    if (++idx >= ARRAY_SIZE(settings)) {
+    if (++idx >= _get_combinations()) {
         return false;
     }
 

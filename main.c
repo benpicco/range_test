@@ -227,8 +227,6 @@ static int _range_test_cmd(int argc, char** argv)
     last_alarm = rtt_get_counter() + TEST_PERIOD;
     rtt_set_alarm(last_alarm, _rtt_alarm, &mutex);
 
-    range_test_start();
-
     do {
         for (int i = 0; i < GNRC_NETIF_NUMOF; ++i)
             mutex_unlock(&ctx[i].mutex);
@@ -312,6 +310,7 @@ static void* range_test_server(void *arg)
             if (!range_test_set_next_modulation()) {
                 rtt_clear_alarm();
                 puts("Test done.");
+                range_test_start();
             }
             continue;
         }
@@ -323,7 +322,6 @@ static void* range_test_server(void *arg)
             pp->type = TEST_HELLO_ACK;
             _udp_reply(pkt, pkt->data, pkt->size);
 
-            range_test_start();
             last_alarm = rtt_get_counter() + TEST_PERIOD;
             rtt_set_alarm(last_alarm, _rtt_next_setting, &ctx);
 
