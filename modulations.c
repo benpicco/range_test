@@ -31,7 +31,7 @@
 
 #define INITIAL_FRAME_DELAY_US  (200000) /* 200 ms */
 
-// #define TEST_OFDM
+#define TEST_OFDM
 // #define TEST_FSK
 #define TEST_OQPSK
 
@@ -333,6 +333,29 @@ static unsigned _get_combinations(void)
     return _get_OFDM_combinations() + _get_OQPSK_combinations();
 }
 
+static int _set(unsigned idx, bool do_set)
+{
+    if (idx < _get_OFDM_combinations()) {
+        return _set_OFDM(idx, do_set);
+    } else {
+        idx -= _get_OFDM_combinations();
+    }
+
+    if (idx < _get_OQPSK_combinations()) {
+        return _set_OQPSK(idx, do_set);
+    } else {
+        idx -= _get_OQPSK_combinations();
+    }
+
+    if (idx < _get_FSK_combinations()) {
+        return _set_FSK(idx, do_set);
+    } else {
+        idx -= _get_FSK_combinations();
+    }
+
+    return -1;
+}
+
 static void _set_modulation(unsigned idx)
 {
     printf("[%d] Set ", idx);
@@ -356,30 +379,9 @@ static void _set_modulation(unsigned idx)
     }
 #endif
 
-    if (idx < _get_OFDM_combinations()) {
-        _set_OFDM(idx, true);
-    } else {
-        idx -= _get_OFDM_combinations();
-    }
-
-    if (idx < _get_OQPSK_combinations()) {
-        _set_OQPSK(idx, true);
-    } else {
-        idx -= _get_OQPSK_combinations();
-    }
-
-    if (idx < _get_FSK_combinations()) {
-        _set_FSK(idx, true);
-    } else {
-        idx -= _get_FSK_combinations();
-    }
+    _set(idx, true);
 
     puts("");
-}
-
-static void _print_name(unsigned i)
-{
-    _set_OFDM(i, false);
 }
 
 void range_test_begin_measurement(kernel_pid_t netif)
@@ -425,7 +427,7 @@ void range_test_print_results(void)
             };
 
             printf("\"");
-            _print_name(i);
+            _set(i, false);
             printf("\";");
 
             if (results[j][i].invalid) {
