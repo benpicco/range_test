@@ -32,8 +32,8 @@
 #define INITIAL_FRAME_DELAY_US  (50000) /* 50 ms */
 // #define INITIAL_FRAME_DELAY_US  (500000) /* 500 ms */
 
-#define TEST_OFDM
-#define TEST_FSK
+// #define TEST_OFDM
+// #define TEST_FSK
 #define TEST_OQPSK
 
 typedef struct {
@@ -149,7 +149,7 @@ static const netopt_list_t oqpsk_rates = {
 };
 
 static const netopt_list_t oqpsk_chips = {
-    .name = "rate",
+    .name = "chip/s",
     .opt  = NETOPT_OQPSK_CHIPS,
     .data_len = 2,
     .num_settings = 4,
@@ -200,6 +200,7 @@ static void _set_from_netopt_list(const netopt_list_t *l, unsigned idx, bool do_
     }
 }
 
+#ifdef TEST_OFDM
 static unsigned _get_OFDM_combinations(void)
 {
     static unsigned combinations;
@@ -211,7 +212,7 @@ static unsigned _get_OFDM_combinations(void)
     return combinations;
 }
 
-static int modulation_set_OFDM(unsigned setting, bool do_set)
+static int _set_OFDM(unsigned setting, bool do_set)
 {
     for (unsigned i = 0; i < ofdm_options.num_settings; ++i) {
         for (unsigned j = 0; j < ofdm_mcs.num_settings; ++j) {
@@ -227,23 +228,159 @@ static int modulation_set_OFDM(unsigned setting, bool do_set)
 
     return -1;
 }
+#else
+static unsigned _get_OFDM_combinations(void)
+{
+    return 0;
+}
+
+static int _set_OFDM(unsigned setting, bool do_set)
+{
+    (void) setting;
+    (void) do_set;
+
+    return -1;
+}
+#endif  /* OFDM */
+
+#ifdef TEST_OQPSK
+static unsigned _get_OQPSK_combinations(void)
+{
+    static unsigned combinations;
+
+    if (combinations == 0) {
+        combinations = oqpsk_rates.num_settings * oqpsk_chips.num_settings;
+    }
+
+    return combinations;
+}
+
+static int _set_OQPSK(unsigned setting, bool do_set)
+{
+    for (unsigned i = 0; i < oqpsk_rates.num_settings; ++i) {
+        for (unsigned j = 0; j < oqpsk_chips.num_settings; ++j) {
+            if (setting-- == 0) {
+                printf("O-QPSK ");
+                _set_from_netopt_list(&oqpsk_rates, i, do_set);
+                printf(", ");
+                _set_from_netopt_list(&oqpsk_chips, j, do_set);
+                return 0;
+            }
+        }
+    }
+
+    return -1;
+}
+#else
+static unsigned _get_OQPSK_combinations(void)
+{
+    return 0;
+}
+
+static int _set_OQPSK(unsigned setting, bool do_set)
+{
+    (void) setting;
+    (void) do_set;
+
+    return -1;
+}
+#endif  /* OFDM */
+
+#ifdef TEST_FSK
+static unsigned _get_FSK_combinations(void)
+{
+    static unsigned combinations;
+
+    if (combinations == 0) {
+        combinations = 0; /* TODO */
+    }
+
+    return combinations;
+}
+
+static int _set_FSK(unsigned setting, bool do_set)
+{
+    for (unsigned i = 0; i < oqpsk_rates.num_settings; ++i) {
+        for (unsigned j = 0; j < oqpsk_chips.num_settings; ++j) {
+            if (setting-- == 0) {
+                printf("FSK ");
+                _set_from_netopt_list(&oqpsk_rates, i, do_set);
+                printf(", ");
+                _set_from_netopt_list(&oqpsk_chips, j, do_set);
+                return 0;
+            }
+        }
+    }
+
+    return -1;
+}
+#else
+static unsigned _get_FSK_combinations(void)
+{
+    return 0;
+}
+
+static int _set_FSK(unsigned setting, bool do_set)
+{
+    (void) setting;
+    (void) do_set;
+
+    return -1;
+}
+#endif  /* OFDM */
 
 static unsigned _get_combinations(void)
 {
-    return _get_OFDM_combinations();
+    return _get_OFDM_combinations() + _get_OQPSK_combinations();
 }
 
-static void _set_modulation(void)
+static void _set_modulation(unsigned idx)
 {
     printf("[%d] Set ", idx);
 
+#ifdef TEST_OFDM
     if (idx == 0) {
         uint32_t data = IEEE802154_PHY_OFDM;
         _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
     }
+#endif
+#ifdef TEST_OQPSK
+    if (idx == _get_OFDM_combinations()) {
+        uint32_t data = IEEE802154_PHY_OQPSK;
+        _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
+    }
+#endif
+#ifdef TEST_FSK
+    if (idx == _get_OFDM_combinations() + _get_OQPSK_combinations()) {
+        uint32_t data = IEEE802154_PHY_FSK;
+        _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
+    }
+#endif
 
-    modulation_set_OFDM(idx, true);
+    if (idx < _get_OFDM_combinations()) {
+        _set_OFDM(idx, true);
+    } else {
+        idx -= _get_OFDM_combinations();
+    }
+
+    if (idx < _get_OQPSK_combinations()) {
+        _set_OQPSK(idx, true);
+    } else {
+        idx -= _get_OQPSK_combinations();
+    }
+
+    if (idx < _get_FSK_combinations()) {
+        _set_FSK(idx, true);
+    } else {
+        idx -= _get_FSK_combinations();
+    }
+
     puts("");
+}
+
+static void _print_name(unsigned i)
+{
+    _set_OFDM(i, false);
 }
 
 void range_test_begin_measurement(kernel_pid_t netif)
@@ -289,7 +426,7 @@ void range_test_print_results(void)
             };
 
             printf("\"");
-            modulation_set_OFDM(i, false);
+            _print_name(i);
             printf("\";");
 
             if (results[j][i].invalid) {
@@ -317,7 +454,7 @@ bool range_test_set_next_modulation(void)
         return false;
     }
 
-    _set_modulation();
+    _set_modulation(idx);
 
     return true;
 }
@@ -328,5 +465,5 @@ void range_test_start(void)
     netopt_enable_t disable = NETOPT_DISABLE;
     _netapi_set_forall(NETOPT_ACK_REQ, &disable, sizeof(disable));
 
-    _set_modulation();
+    _set_modulation(idx);
 }
