@@ -148,6 +148,40 @@ static const netopt_setting_t settings[] = {
         .opt_num = 3
     },
     {
+        .name = "2FSK, 150 kHz, NRNSC",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_SRATE,
+                .data = 150,
+                .data_len = 2
+            },
+            {
+                .opt  = NETOPT_FSK_FEC,
+                .data = IEEE802154_FEC_NRNSC,
+                .data_len = 2
+            },
+        },
+        .opt_num = 2
+    },
+    {
+        .name = "2FSK, 150 kHz, RSC",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_SRATE,
+                .data = 150,
+                .data_len = 2
+            },
+            {
+                .opt  = NETOPT_FSK_FEC,
+                .data = IEEE802154_FEC_RSC,
+                .data_len = 2
+            },
+        },
+        .opt_num = 2
+    },
+    {
         .name = "2FSK, 150 kHz",
         .opt =
         {
@@ -156,8 +190,13 @@ static const netopt_setting_t settings[] = {
                 .data = 150,
                 .data_len = 2
             },
+            {
+                .opt  = NETOPT_FSK_FEC,
+                .data = IEEE802154_FEC_NONE,
+                .data_len = 2
+            },
         },
-        .opt_num = 1
+        .opt_num = 2
     },
     {
         .name = "2FSK, 300 kHz",
@@ -172,13 +211,102 @@ static const netopt_setting_t settings[] = {
         .opt_num = 1
     },
     {
-        .name = "2FSK, 400 kHz",
+        .name = "2FSK, 400 kHz, idx 24/64",
         .opt =
         {
             {
                 .opt  = NETOPT_FSK_SRATE,
                 .data = 400,
                 .data_len = 2
+            },
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 24,
+                .data_len = 1
+            },
+        },
+        .opt_num = 2
+    },
+    {
+        .name = "2FSK, 400 kHz, idx 32/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 32,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "2FSK, 400 kHz, idx 48/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 48,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "2FSK, 400 kHz, idx 64/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 64,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "2FSK, 400 kHz, idx 80/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 80,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "2FSK, 400 kHz, idx 96/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 96,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "2FSK, 400 kHz, idx 112/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 112,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "2FSK, 400 kHz, idx 128/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 128,
+                .data_len = 1
             },
         },
         .opt_num = 1
@@ -230,13 +358,108 @@ static const netopt_setting_t settings[] = {
         .opt_num = 1
     },
     {
-        .name = "4FSK, 400 kHz",
+        .name = "4FSK, 400 kHz, idx 24/64",
         .opt =
         {
             {
                 .opt  = NETOPT_FSK_SRATE,
                 .data = 400,
                 .data_len = 2
+            },
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 24,
+                .data_len = 1
+            },
+            {
+                .opt  = NETOPT_FSK_FEC,
+                .data = IEEE802154_FEC_NRNSC,
+                .data_len = 2
+            },
+
+        },
+        .opt_num = 3
+    },
+    {
+        .name = "4FSK, 400 kHz, idx 32/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 32,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 400 kHz, idx 48/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 48,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 400 kHz, idx 64/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 64,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 400 kHz, idx 80/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 80,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 400 kHz, idx 96/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 96,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 400 kHz, idx 112/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 112,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 400 kHz, idx 128/64",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_MODULATION_INDEX,
+                .data = 128,
+                .data_len = 1
             },
         },
         .opt_num = 1
