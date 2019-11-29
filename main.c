@@ -27,6 +27,7 @@
 #include "net/gnrc.h"
 #include "net/gnrc/ipv6.h"
 #include "net/gnrc/udp.h"
+#include "periph/gpio.h"
 
 #include "shell.h"
 #include "shell_commands.h"
@@ -34,7 +35,7 @@
 
 int at86rf215_debug(int argc, char** argv);
 
-#define HELLO_TIMEOUT_US    (50*1000)
+#define HELLO_TIMEOUT_US    (200*1000)
 #define HELLO_RETRIES       (100)
 
 #define TEST_PERIOD (1 * RTT_FREQUENCY)

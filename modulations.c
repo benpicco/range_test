@@ -29,8 +29,7 @@
 #include "shell_commands.h"
 #include "range_test.h"
 
-#define INITIAL_FRAME_DELAY_US  (50000) /* 50 ms */
-// #define INITIAL_FRAME_DELAY_US  (500000) /* 500 ms */
+#define INITIAL_FRAME_DELAY_US  (200000) /* 200 ms */
 
 // #define TEST_OFDM
 // #define TEST_FSK
