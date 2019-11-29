@@ -31,9 +31,9 @@
 
 #define INITIAL_FRAME_DELAY_US  (200000) /* 200 ms */
 
-// #define TEST_OFDM
+#define TEST_OFDM
+#define TEST_OQPSK
 #define TEST_FSK
-// #define TEST_OQPSK
 
 typedef struct {
     netopt_t opt;
