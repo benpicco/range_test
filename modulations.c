@@ -29,6 +29,13 @@
 #include "shell_commands.h"
 #include "range_test.h"
 
+#define INITIAL_FRAME_DELAY_US  (50000) /* 50 ms */
+// #define INITIAL_FRAME_DELAY_US  (500000) /* 500 ms */
+
+#define TEST_OFDM
+#define TEST_FSK
+#define TEST_OQPSK
+
 typedef struct {
     netopt_t opt;
     uint32_t data;
@@ -42,6 +49,7 @@ typedef struct {
 } netopt_setting_t;
 
 static const netopt_setting_t settings[] = {
+#ifdef TEST_OFDM
     {
         .name = "OFDM-BPSKx4, opt=1",
         .opt =
@@ -115,8 +123,10 @@ static const netopt_setting_t settings[] = {
         },
         .opt_num = 1
     },
+#endif /* OFDM */
+#ifdef TEST_FSK
     {
-        .name = "FSK, 50 kHz",
+        .name = "2FSK, 50 kHz",
         .opt =
         {
             {
@@ -129,11 +139,16 @@ static const netopt_setting_t settings[] = {
                 .data = 50,
                 .data_len = 2
             },
+            {
+                .opt = NETOPT_FSK_MODULATION_ORDER,
+                .data = 2,
+                .data_len = 1
+            },
         },
-        .opt_num = 2
+        .opt_num = 3
     },
     {
-        .name = "FSK, 150 kHz",
+        .name = "2FSK, 150 kHz",
         .opt =
         {
             {
@@ -145,7 +160,19 @@ static const netopt_setting_t settings[] = {
         .opt_num = 1
     },
     {
-        .name = "FSK, 400 kHz",
+        .name = "2FSK, 300 kHz",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_SRATE,
+                .data = 300,
+                .data_len = 2
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "2FSK, 400 kHz",
         .opt =
         {
             {
@@ -156,6 +183,66 @@ static const netopt_setting_t settings[] = {
         },
         .opt_num = 1
     },
+    {
+        .name = "4FSK, 50 kHz",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_IEEE802154_PHY,
+                .data = IEEE802154_PHY_FSK,
+                .data_len = 1
+            },
+            {
+                .opt  = NETOPT_FSK_SRATE,
+                .data = 50,
+                .data_len = 2
+            },
+            {
+                .opt = NETOPT_FSK_MODULATION_ORDER,
+                .data = 4,
+                .data_len = 1
+            },
+        },
+        .opt_num = 3
+    },
+    {
+        .name = "4FSK, 150 kHz",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_SRATE,
+                .data = 150,
+                .data_len = 2
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 300 kHz",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_SRATE,
+                .data = 300,
+                .data_len = 2
+            },
+        },
+        .opt_num = 1
+    },
+    {
+        .name = "4FSK, 400 kHz",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_FSK_SRATE,
+                .data = 400,
+                .data_len = 2
+            },
+        },
+        .opt_num = 1
+    },
+#endif /* FSK */
+#ifdef TEST_OQPSK
     {
         .name = "O-QPSK, rate mode 4",
         .opt =
@@ -198,6 +285,18 @@ static const netopt_setting_t settings[] = {
         .opt_num = 1
     },
     {
+        .name = "O-QPSK legacy",
+        .opt =
+        {
+            {
+                .opt  = NETOPT_OQPSK_RATE,
+                .data = IEEE802154_OQPSK_FLAG_LEGACY,
+                .data_len = 1
+            },
+        },
+        .opt_num = 1
+    },
+    {
         .name = "O-QPSK, rate mode 1",
         .opt =
         {
@@ -221,18 +320,7 @@ static const netopt_setting_t settings[] = {
         },
         .opt_num = 1
     },
-    {
-        .name = "O-QPSK legacy",
-        .opt =
-        {
-            {
-                .opt  = NETOPT_OQPSK_RATE,
-                .data = IEEE802154_OQPSK_FLAG_LEGACY,
-                .data_len = 1
-            },
-        },
-        .opt_num = 1
-    },
+#endif /* O-QPSK */
 };
 
 static unsigned idx;
@@ -241,7 +329,9 @@ static test_result_t results[GNRC_NETIF_NUMOF][ARRAY_SIZE(settings)];
 static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
 {
     for (gnrc_netif_t *netif = gnrc_netif_iter(NULL); netif; netif = gnrc_netif_iter(netif)) {
-        gnrc_netapi_set(netif->pid, opt, 0, data, data_len);
+        if (gnrc_netapi_set(netif->pid, opt, 0, data, data_len) < 0) {
+            printf("[%d] failed setting %x to %x\n", netif->pid, opt, *(uint8_t*) data);
+        }
     }
 }
 
@@ -250,7 +340,7 @@ void range_test_begin_measurement(kernel_pid_t netif)
     netif -= 6; // XXX
     results[netif][idx].pkts_send++;
     if (results[netif][idx].rtt_ticks == 0) {
-        results[netif][idx].rtt_ticks = xtimer_ticks_from_usec(500000).ticks32;
+        results[netif][idx].rtt_ticks = xtimer_ticks_from_usec(INITIAL_FRAME_DELAY_US).ticks32;
     }
 }
 
