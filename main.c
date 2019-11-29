@@ -37,7 +37,7 @@ int at86rf215_debug(int argc, char** argv);
 #define HELLO_TIMEOUT_US    (50*1000)
 #define HELLO_RETRIES       (100)
 
-#define TEST_PERIOD (5 * RTT_FREQUENCY)
+#define TEST_PERIOD (1 * RTT_FREQUENCY)
 #define TEST_PORT   (2323)
 #define QUEUE_SIZE  (4)
 
@@ -239,7 +239,7 @@ static int _range_test_cmd(int argc, char** argv)
             mutex_lock(&ctx[i].mutex);
 
         /* can't change the modulation if the radio is still sending */
-        xtimer_usleep(250000);
+        xtimer_usleep(100000);
     } while (range_test_set_next_modulation());
 
 
