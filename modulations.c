@@ -59,6 +59,7 @@ typedef struct {
     } settings[];
 } netopt_list_t;
 
+#ifdef TEST_OFDM
 static const netopt_list_t ofdm_options = {
     .name = "option",
     .opt  = NETOPT_OFDM_OPTION,
@@ -120,16 +121,82 @@ static const netopt_list_t ofdm_mcs = {
         },
     },
 };
+#endif /* OFDM */
+#ifdef TEST_OQPSK
+static const netopt_list_t oqpsk_rates = {
+    .name = "rate",
+    .opt  = NETOPT_OQPSK_RATE,
+    .data_len = 1,
+    .num_settings = 4,
+    .settings = {
+        {
+            .name = "0",
+            .data = 0
+        },
+        {
+            .name = "1",
+            .data = 1
+        },
+        {
+            .name = "2",
+            .data = 2
+        },
+        {
+            .name = "3",
+            .data = 3
+        },
+    },
+};
+
+static const netopt_list_t oqpsk_chips = {
+    .name = "rate",
+    .opt  = NETOPT_OQPSK_CHIPS,
+    .data_len = 2,
+    .num_settings = 4,
+    .settings = {
+        {
+            .name = "100k",
+            .data = 100
+        },
+        {
+            .name = "200k",
+            .data = 200
+        },
+        {
+            .name = "1000k",
+            .data = 1000
+        },
+        {
+            .name = "2000k",
+            .data = 2000
+        },
+    },
+};
+#endif /* O-QPSK */
 
 static unsigned idx;
 static test_result_t *results[GNRC_NETIF_NUMOF];
 
 static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
 {
+    unsigned i = 0;
     for (gnrc_netif_t *netif = gnrc_netif_iter(NULL); netif; netif = gnrc_netif_iter(netif)) {
         if (gnrc_netapi_set(netif->pid, opt, 0, data, data_len) < 0) {
             printf("[%d] failed setting %x to %x\n", netif->pid, opt, *(uint8_t*) data);
+
+            if (results[i]) {
+                results[i][idx].invalid = true;
+            }
         }
+        ++i;
+    }
+}
+
+static void _set_from_netopt_list(const netopt_list_t *l, unsigned idx, bool do_set) {
+    printf("%s = %s", l->name, l->settings[idx].name);
+
+    if (do_set) {
+        _netapi_set_forall(l->opt, &l->settings[idx].data, l->data_len);
     }
 }
 
@@ -142,14 +209,6 @@ static unsigned _get_OFDM_combinations(void)
     }
 
     return combinations;
-}
-
-static void _set_from_netopt_list(const netopt_list_t *l, unsigned idx, bool do_set) {
-    printf("%s = %s", l->name, l->settings[idx].name);
-
-    if (do_set) {
-        _netapi_set_forall(l->opt, &l->settings[idx].data, l->data_len);
-    }
 }
 
 static int modulation_set_OFDM(unsigned setting, bool do_set)
@@ -233,13 +292,17 @@ void range_test_print_results(void)
             modulation_set_OFDM(i, false);
             printf("\";");
 
-            printf("%d;", j);
-            printf("%d;", results[j][i].pkts_send);
-            printf("%d;", results[j][i].pkts_rcvd);
-            printf("%ld;", results[j][i].rssi_sum[0] / results[j][i].pkts_rcvd);
-            printf("%ld;", results[j][i].rssi_sum[1] / results[j][i].pkts_rcvd);
-            printf("%ld", xtimer_usec_from_ticks(ticks));
-            printf("\t|\t%d %%\n", (100 * results[j][i].pkts_rcvd) / results[j][i].pkts_send);
+            if (results[j][i].invalid) {
+                puts(" INVALID");
+            } else {
+                printf("%d;", j);
+                printf("%d;", results[j][i].pkts_send);
+                printf("%d;", results[j][i].pkts_rcvd);
+                printf("%ld;", results[j][i].rssi_sum[0] / results[j][i].pkts_rcvd);
+                printf("%ld;", results[j][i].rssi_sum[1] / results[j][i].pkts_rcvd);
+                printf("%ld", xtimer_usec_from_ticks(ticks));
+                printf("\t|\t%d %%\n", (100 * results[j][i].pkts_rcvd) / results[j][i].pkts_send);
+            }
 
             memset(&results[j][i], 0, sizeof(results[j][i]));
         }

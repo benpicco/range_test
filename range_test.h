@@ -29,6 +29,7 @@ typedef struct {
     uint16_t pkts_rcvd;
     int32_t rssi_sum[2];
     uint32_t rtt_ticks;
+    bool invalid;
 } test_result_t;
 
 void range_test_start(void);
