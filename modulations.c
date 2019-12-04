@@ -33,6 +33,7 @@
 
 #define TEST_OFDM
 #define TEST_OQPSK
+#define TEST_LEGCAY_OQPSK
 #define TEST_FSK
 
 typedef struct {
@@ -172,6 +173,24 @@ static const netopt_list_t oqpsk_chips = {
     },
 };
 #endif /* O-QPSK */
+#ifdef TEST_LEGCAY_OQPSK
+static const netopt_list_t legacy_oqpsk_rates = {
+    .name = "rate",
+    .opt  = NETOPT_OQPSK_RATE,
+    .data_len = 1,
+    .num_settings = 2,
+    .settings = {
+        {
+            .name = "legacy",
+            .data = 0 | IEEE802154_OQPSK_FLAG_LEGACY
+        },
+        {
+            .name = "legacy HDR",
+            .data = 1 | IEEE802154_OQPSK_FLAG_LEGACY
+        },
+    },
+};
+#endif /* TEST_LEGCAY_OQPSK */
 #ifdef TEST_FSK
 static const netopt_list_t fsk_idx = {
     .name = "index",
@@ -396,7 +415,40 @@ static int _set_OQPSK(unsigned setting, bool do_set)
 
     return -1;
 }
-#endif  /* OFDM */
+#endif  /* O-QPSK */
+
+#ifdef TEST_LEGCAY_OQPSK
+static unsigned _get_legacy_OQPSK_combinations(void)
+{
+    return legacy_oqpsk_rates.num_settings;
+}
+
+static int _set_legacy_OQPSK(unsigned setting, bool do_set)
+{
+    for (unsigned i = 0; i < legacy_oqpsk_rates.num_settings; ++i) {
+        if (setting-- == 0) {
+            printf("O-QPSK ");
+            _set_from_netopt_list(&legacy_oqpsk_rates, i, do_set);
+            return 0;
+        }
+    }
+
+    return -1;
+}
+#else
+static unsigned _get_legacy_OQPSK_combinations(void)
+{
+    return 0;
+}
+
+static int _set_legacy_OQPSK(unsigned setting, bool do_set)
+{
+    (void) setting;
+    (void) do_set;
+
+    return -1;
+}
+#endif  /* legacy O-QPSK */
 
 #ifdef TEST_FSK
 static unsigned _get_FSK_combinations(void)
@@ -452,7 +504,8 @@ static int _set_FSK(unsigned setting, bool do_set)
 
 static unsigned _get_combinations(void)
 {
-    return _get_OFDM_combinations() + _get_OQPSK_combinations() + _get_FSK_combinations();
+    return _get_OFDM_combinations() + _get_OQPSK_combinations()
+         + _get_legacy_OQPSK_combinations() + _get_FSK_combinations();
 }
 
 static int _set(unsigned idx, bool do_set)
@@ -467,6 +520,12 @@ static int _set(unsigned idx, bool do_set)
         return _set_OQPSK(idx, do_set);
     } else {
         idx -= _get_OQPSK_combinations();
+    }
+
+    if (idx < _get_legacy_OQPSK_combinations()) {
+        return _set_legacy_OQPSK(idx, do_set);
+    } else {
+        idx -= _get_legacy_OQPSK_combinations();
     }
 
     if (idx < _get_FSK_combinations()) {
@@ -494,8 +553,14 @@ static void _set_modulation(unsigned idx)
         _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
     }
 #endif
-#ifdef TEST_FSK
+#ifdef TEST_LEGCAY_OQPSK
     if (idx == _get_OFDM_combinations() + _get_OQPSK_combinations()) {
+        uint32_t data = IEEE802154_PHY_OQPSK;
+        _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
+    }
+#endif
+#ifdef TEST_FSK
+    if (idx == _get_OFDM_combinations() + _get_OQPSK_combinations() + _get_legacy_OQPSK_combinations()) {
         uint32_t data = IEEE802154_PHY_FSK;
         _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
     }
