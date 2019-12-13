@@ -62,7 +62,7 @@ typedef struct {
 #ifdef TEST_OFDM
 static const netopt_list_t ofdm_options = {
     .name = "option",
-    .opt  = NETOPT_OFDM_OPTION,
+    .opt  = NETOPT_MR_OFDM_OPTION,
     .data_len = 1,
     .num_settings = 4,
     .settings = {
@@ -87,7 +87,7 @@ static const netopt_list_t ofdm_options = {
 
 static const netopt_list_t ofdm_mcs = {
     .name = "MCS",
-    .opt  = NETOPT_OFDM_MCS,
+    .opt  = NETOPT_MR_OFDM_MCS,
     .data_len = 1,
     .num_settings = 7,
     .settings = {
@@ -125,7 +125,7 @@ static const netopt_list_t ofdm_mcs = {
 #ifdef TEST_OQPSK
 static const netopt_list_t oqpsk_rates = {
     .name = "rate",
-    .opt  = NETOPT_OQPSK_RATE,
+    .opt  = NETOPT_MR_OQPSK_RATE,
     .data_len = 1,
     .num_settings = 4,
     .settings = {
@@ -150,7 +150,7 @@ static const netopt_list_t oqpsk_rates = {
 
 static const netopt_list_t oqpsk_chips = {
     .name = "chip/s",
-    .opt  = NETOPT_OQPSK_CHIPS,
+    .opt  = NETOPT_MR_OQPSK_CHIPS,
     .data_len = 2,
     .num_settings = 4,
     .settings = {
@@ -182,11 +182,11 @@ static const netopt_list_t legacy_oqpsk_rates = {
     .settings = {
         {
             .name = "legacy",
-            .data = 0 | IEEE802154_OQPSK_FLAG_LEGACY
+            .data = 0
         },
         {
             .name = "legacy HDR",
-            .data = 1 | IEEE802154_OQPSK_FLAG_LEGACY
+            .data = 1
         },
     },
 };
@@ -194,7 +194,7 @@ static const netopt_list_t legacy_oqpsk_rates = {
 #ifdef TEST_FSK
 static const netopt_list_t fsk_idx = {
     .name = "index",
-    .opt  = NETOPT_FSK_MODULATION_INDEX,
+    .opt  = NETOPT_MR_FSK_MODULATION_INDEX,
     .data_len = 1,
     .num_settings = 8,
     .settings = {
@@ -235,7 +235,7 @@ static const netopt_list_t fsk_idx = {
 
 static const netopt_list_t fsk_srate = {
     .name = "srate",
-    .opt  = NETOPT_FSK_SRATE,
+    .opt  = NETOPT_MR_FSK_SRATE,
     .data_len = 2,
     .num_settings = 6,
     .settings = {
@@ -268,7 +268,7 @@ static const netopt_list_t fsk_srate = {
 
 static const netopt_list_t fsk_mord = {
     .name = "order",
-    .opt  = NETOPT_FSK_MODULATION_ORDER,
+    .opt  = NETOPT_MR_FSK_MODULATION_ORDER,
     .data_len = 1,
     .num_settings = 2,
     .settings = {
@@ -285,7 +285,7 @@ static const netopt_list_t fsk_mord = {
 
 static const netopt_list_t fsk_fec = {
     .name = "FEC",
-    .opt  = NETOPT_FSK_FEC,
+    .opt  = NETOPT_MR_FSK_FEC,
     .data_len = 1,
     .num_settings = 3,
     .settings = {
@@ -543,13 +543,13 @@ static void _set_modulation(unsigned idx)
 
 #ifdef TEST_OFDM
     if (idx == 0) {
-        uint32_t data = IEEE802154_PHY_OFDM;
+        uint32_t data = IEEE802154_PHY_MR_OFDM;
         _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
     }
 #endif
 #ifdef TEST_OQPSK
     if (idx == _get_OFDM_combinations()) {
-        uint32_t data = IEEE802154_PHY_OQPSK;
+        uint32_t data = IEEE802154_PHY_MR_OQPSK;
         _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
     }
 #endif
@@ -561,7 +561,7 @@ static void _set_modulation(unsigned idx)
 #endif
 #ifdef TEST_FSK
     if (idx == _get_OFDM_combinations() + _get_OQPSK_combinations() + _get_legacy_OQPSK_combinations()) {
-        uint32_t data = IEEE802154_PHY_FSK;
+        uint32_t data = IEEE802154_PHY_MR_FSK;
         _netapi_set_forall(NETOPT_IEEE802154_PHY, &data, 1);
     }
 #endif
