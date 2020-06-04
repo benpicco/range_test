@@ -40,4 +40,6 @@ void range_test_begin_measurement(kernel_pid_t netif);
 void range_test_add_measurement(kernel_pid_t netif, int rssi_local, int rssi_remote, uint32_t ticks);
 void range_test_print_results(void);
 
+#define GNRC_NETIF_NUMOF (2) // FIXME
+
 #endif

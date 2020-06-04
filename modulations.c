@@ -31,10 +31,21 @@
 
 #define INITIAL_FRAME_DELAY_US  (200000) /* 200 ms */
 
+#ifdef MODULE_NETDEV_IEEE802154_MR_OFDM
 #define TEST_OFDM
+#endif
+
+#ifdef MODULE_NETDEV_IEEE802154_MR_OQPSK
 #define TEST_OQPSK
+#endif
+
+#ifdef MODULE_NETDEV_IEEE802154_OQPSK
 #define TEST_LEGCAY_OQPSK
+#endif
+
+#ifdef MODULE_NETDEV_IEEE802154_MR_FSK
 #define TEST_FSK
+#endif
 
 typedef struct {
     netopt_t opt;
