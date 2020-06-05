@@ -4,7 +4,10 @@ APPLICATION = range_test
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
 
-GNRC_NETIF_NUMOF = 2
+# for the latest board revision, TODO: move to board
+CFLAGS += -DAT86RF215_TRIM_VAL=0xF
+# enable PA
+CFLAGS += -DCONFIG_IEEE802154_DEFAULT_TXPOWER=3
 
 # This has to be the absolute path to the RIOT base directory:
 RIOTBASE ?= $(CURDIR)/../RIOT

@@ -36,7 +36,7 @@
 #define HELLO_TIMEOUT_US    (200*1000)
 #define HELLO_RETRIES       (100)
 
-#define TEST_PERIOD (1 * RTT_FREQUENCY)
+#define TEST_PERIOD (3 * RTT_FREQUENCY)
 #define TEST_PORT   (2323)
 #define QUEUE_SIZE  (4)
 
