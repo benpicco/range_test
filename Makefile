@@ -5,7 +5,7 @@ APPLICATION = range_test
 BOARD ?= native
 
 # for the latest board revision, TODO: move to board
-CFLAGS += -DAT86RF215_TRIM_VAL=0xF
+CFLAGS += -DCONFIG_AT86RF215_TRIM_VAL=0xF
 # enable PA
 CFLAGS += -DCONFIG_IEEE802154_DEFAULT_TXPOWER=3
 
