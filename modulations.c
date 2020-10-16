@@ -588,6 +588,10 @@ void range_test_begin_measurement(kernel_pid_t netif)
 
     if (results[netif] == NULL) {
         results[netif] = calloc(_get_combinations(), sizeof(test_result_t));
+        if (results[netif] == NULL) {
+            puts("Out of memory!");
+            return;
+        }
     }
 
     results[netif][idx].pkts_send++;
@@ -606,19 +610,23 @@ xtimer_ticks32_t range_test_get_timeout(kernel_pid_t netif)
     return t;
 }
 
-void range_test_add_measurement(kernel_pid_t netif, int rssi_local, int rssi_remote, uint32_t ticks)
+void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
+                                int rssi_local, int rssi_remote,
+                                unsigned lqi_local, unsigned lqi_remote)
 {
     netif -= RADIO_PID; // XXX
 
     results[netif][idx].pkts_rcvd++;
     results[netif][idx].rssi_sum[0] += rssi_local;
     results[netif][idx].rssi_sum[1] += rssi_remote;
+    results[netif][idx].lqi_sum[0] += lqi_local;
+    results[netif][idx].lqi_sum[1] += lqi_remote;
     results[netif][idx].rtt_ticks = (results[netif][idx].rtt_ticks + ticks) / 2;
 }
 
 void range_test_print_results(void)
 {
-    printf("modulation;iface;sent;received;RSSI_local;RSSI_remote;RTT\n");
+    printf("modulation;iface;sent;received;LQI_local;LQI_remote;RSSI_local;RSSI_remote;RTT\n");
     for (unsigned i = 0; i < _get_combinations(); ++i) {
         for (int j = 0; j < GNRC_NETIF_NUMOF; ++j) {
             xtimer_ticks32_t ticks = {
@@ -635,6 +643,8 @@ void range_test_print_results(void)
                 printf("%d;", j);
                 printf("%d;", results[j][i].pkts_send);
                 printf("%d;", results[j][i].pkts_rcvd);
+                printf("%ld;", results[j][i].lqi_sum[0] / results[j][i].pkts_rcvd);
+                printf("%ld;", results[j][i].lqi_sum[1] / results[j][i].pkts_rcvd);
                 printf("%ld;", results[j][i].rssi_sum[0] / results[j][i].pkts_rcvd);
                 printf("%ld;", results[j][i].rssi_sum[1] / results[j][i].pkts_rcvd);
                 printf("%ld", xtimer_usec_from_ticks(ticks));

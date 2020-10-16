@@ -55,6 +55,7 @@ typedef struct {
 typedef struct {
     uint8_t type;
     int8_t rssi;
+    uint8_t lqi;
     uint16_t seq_no;
     uint32_t ticks;
 } test_pingpong_t;
@@ -72,13 +73,13 @@ static void _rtt_alarm(void* ctx)
     mutex_unlock(ctx);
 }
 
-static int _get_rssi(gnrc_pktsnip_t *pkt, kernel_pid_t *pid)
+static int _get_rssi(gnrc_pktsnip_t *pkt, kernel_pid_t *pid, uint8_t *lqi, int8_t *rssi)
 {
     gnrc_netif_hdr_t *netif_hdr;
     gnrc_pktsnip_t *netif = gnrc_pktsnip_search_type(pkt, GNRC_NETTYPE_NETIF);
 
     if (netif == NULL) {
-        return 0;
+        return -1;
     }
 
     netif_hdr = netif->data;
@@ -87,7 +88,10 @@ static int _get_rssi(gnrc_pktsnip_t *pkt, kernel_pid_t *pid)
         *pid = netif_hdr->if_pid;
     }
 
-    return netif_hdr->rssi;
+    *rssi = netif_hdr->rssi;
+    *lqi  = netif_hdr->lqi;
+
+    return 0;
 }
 
 static bool _udp_send(int netif, const ipv6_addr_t* addr, uint16_t port, const void* data, size_t len)
@@ -332,14 +336,17 @@ static void* range_test_server(void *arg)
             break;
         case TEST_PING:
             pp->type = TEST_PONG;
-            pp->rssi = _get_rssi(pkt, NULL);
+            _get_rssi(pkt, NULL, &pp->lqi, &pp->rssi);
             _udp_reply(pkt, pkt->data, pkt->size);
             break;
         case TEST_PONG:
         {
             kernel_pid_t netif = 0;
-            int rssi = _get_rssi(pkt, &netif);
-            range_test_add_measurement(netif, rssi, pp->rssi, xtimer_now().ticks32 - pp->ticks);
+            uint8_t lqi = 0;
+            int8_t rssi = 0;
+            _get_rssi(pkt, &netif, &lqi, &rssi);
+            range_test_add_measurement(netif, xtimer_now().ticks32 - pp->ticks,
+                                       rssi, pp->rssi, lqi, pp->lqi);
             break;
         }
         default:
