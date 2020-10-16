@@ -584,7 +584,7 @@ static void _set_modulation(unsigned idx)
 
 void range_test_begin_measurement(kernel_pid_t netif)
 {
-    netif -= 6; // XXX
+    netif -= RADIO_PID; // XXX
 
     if (results[netif] == NULL) {
         results[netif] = calloc(_get_combinations(), sizeof(test_result_t));
@@ -598,7 +598,7 @@ void range_test_begin_measurement(kernel_pid_t netif)
 
 xtimer_ticks32_t range_test_get_timeout(kernel_pid_t netif)
 {
-    netif -= 6; // XXX
+    netif -= RADIO_PID; // XXX
     xtimer_ticks32_t t = {
         .ticks32 = results[netif][idx].rtt_ticks + results[netif][idx].rtt_ticks / 10
     };
@@ -608,7 +608,8 @@ xtimer_ticks32_t range_test_get_timeout(kernel_pid_t netif)
 
 void range_test_add_measurement(kernel_pid_t netif, int rssi_local, int rssi_remote, uint32_t ticks)
 {
-    netif -= 6; // XXX
+    netif -= RADIO_PID; // XXX
+
     results[netif][idx].pkts_rcvd++;
     results[netif][idx].rssi_sum[0] += rssi_local;
     results[netif][idx].rssi_sum[1] += rssi_remote;

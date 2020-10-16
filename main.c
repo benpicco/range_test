@@ -216,7 +216,7 @@ static int _range_test_cmd(int argc, char** argv)
     for (int i = 0; i < GNRC_NETIF_NUMOF; ++i) {
         mutex_init(&ctx[i].mutex);
         mutex_lock(&ctx[i].mutex);
-        ctx[i].netif = 6 + i; // XXX
+        ctx[i].netif = RADIO_PID + i; // XXX
         ctx[i].running = true;
         thread_create(test_sender_stack[i], sizeof(test_sender_stack[i]),
                       THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST,

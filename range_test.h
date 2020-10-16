@@ -41,5 +41,7 @@ void range_test_add_measurement(kernel_pid_t netif, int rssi_local, int rssi_rem
 void range_test_print_results(void);
 
 #define GNRC_NETIF_NUMOF (2) // FIXME
+#define RADIO_PID        (5) /* XXX */
+
 
 #endif
