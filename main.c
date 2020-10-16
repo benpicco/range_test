@@ -369,7 +369,7 @@ static int _do_ping(int argc, char** argv)
 
 static const shell_command_t shell_commands[] = {
     { "range_test", "Iterates over radio settings", _range_test_cmd },
-    { "ping", "send single ping to all nodes", _do_ping },
+    { "ping_test", "send single ping to all nodes", _do_ping },
     { NULL, NULL, NULL }
 };
 
