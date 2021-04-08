@@ -43,8 +43,10 @@ void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
                                 unsigned lqi_local, unsigned lqi_remote);
 void range_test_print_results(void);
 
+uint32_t range_test_period_ms(void);
+size_t range_test_payload_size(void);
+
 #define GNRC_NETIF_NUMOF (2) // FIXME
 #define RADIO_PID        (5) /* XXX */
-
 
 #endif

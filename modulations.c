@@ -648,7 +648,11 @@ void range_test_print_results(void)
                 printf("%ld;", results[j][i].rssi_sum[0] / results[j][i].pkts_rcvd);
                 printf("%ld;", results[j][i].rssi_sum[1] / results[j][i].pkts_rcvd);
                 printf("%ld", xtimer_usec_from_ticks(ticks));
-                printf("\t|\t%d %%\n", (100 * results[j][i].pkts_rcvd) / results[j][i].pkts_send);
+                printf("\t|\t%d %%", (100 * results[j][i].pkts_rcvd) / results[j][i].pkts_send);
+                printf(" max = %lu byte/s", range_test_payload_size() * US_PER_SEC / xtimer_usec_from_ticks(ticks));
+                printf(" avg = %lu byte/s", (results[j][i].pkts_rcvd * range_test_payload_size() * 1000) /
+                                            range_test_period_ms());
+                puts("");
             }
 
             memset(&results[j][i], 0, sizeof(results[j][i]));

@@ -65,6 +65,16 @@ static char test_sender_stack[GNRC_NETIF_NUMOF][THREAD_STACKSIZE_MAIN];
 
 static volatile uint32_t last_alarm;
 
+size_t range_test_payload_size(void)
+{
+    return sizeof(test_pingpong_t);
+}
+
+uint32_t range_test_period_ms(void)
+{
+    return (TEST_PERIOD * 1000) / RTT_FREQUENCY;
+}
+
 static void _rtt_alarm(void* ctx)
 {
     last_alarm += TEST_PERIOD;
