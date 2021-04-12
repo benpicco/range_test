@@ -4,8 +4,6 @@ APPLICATION = range_test
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
 
-# for the latest board revision, TODO: move to board
-CFLAGS += -DCONFIG_AT86RF215_TRIM_VAL=0xF
 # enable PA
 CFLAGS += -DCONFIG_IEEE802154_DEFAULT_TXPOWER=3
 
