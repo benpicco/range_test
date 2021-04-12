@@ -679,5 +679,7 @@ void range_test_start(void)
     netopt_enable_t disable = NETOPT_DISABLE;
     _netapi_set_forall(NETOPT_ACK_REQ, &disable, sizeof(disable));
 
+    LED0_OFF;
+
     _set_modulation(idx);
 }

@@ -335,6 +335,8 @@ static void* range_test_server(void *arg)
             pp->type = TEST_HELLO_ACK;
             _udp_reply(pkt, pkt->data, pkt->size);
 
+            LED0_ON;
+
             last_alarm = rtt_get_counter() + TEST_PERIOD;
             rtt_set_alarm(last_alarm, _rtt_next_setting, &ctx);
 
