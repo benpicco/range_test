@@ -23,6 +23,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "xtimer.h"
 
 typedef struct {
     uint16_t pkts_send;

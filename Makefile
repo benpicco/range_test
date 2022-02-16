@@ -11,7 +11,7 @@ CFLAGS += -DCONFIG_IEEE802154_DEFAULT_TXPOWER=3
 RIOTBASE ?= $(CURDIR)/../RIOT
 
 # use the default network interface for the board
-USEMODULE += gnrc_netdev_default
+USEMODULE += netdev_default
 USEMODULE += auto_init_gnrc_netif
 
 USEMODULE += gnrc_ipv6_default
@@ -26,6 +26,7 @@ USEMODULE += shell_commands
 USEMODULE += ps
 
 USEMODULE += periph_rtt
+USEMODULE += xtimer
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
