@@ -147,7 +147,7 @@ static bool _send_ping(int netif, const ipv6_addr_t* addr, uint16_t port)
 {
     test_pingpong_t ping = {
         .type = TEST_PING,
-        .ticks = xtimer_now().ticks32
+        .ticks = xtimer_now()
     };
 
     return _udp_send(netif, addr, port, &ping, sizeof(ping));
@@ -357,7 +357,7 @@ static void* range_test_server(void *arg)
             uint8_t lqi = 0;
             int8_t rssi = 0;
             _get_rssi(pkt, &netif, &lqi, &rssi);
-            range_test_add_measurement(netif, xtimer_now().ticks32 - pp->ticks,
+            range_test_add_measurement(netif, xtimer_now() - pp->ticks,
                                        rssi, pp->rssi, lqi, pp->lqi);
             break;
         }

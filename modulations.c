@@ -32,7 +32,7 @@
 #define INITIAL_FRAME_DELAY_US  (200000) /* 200 ms */
 
 #ifdef MODULE_NETDEV_IEEE802154_MR_OFDM
-// #define TEST_OFDM
+#define TEST_OFDM
 #endif
 
 #ifdef MODULE_NETDEV_IEEE802154_MR_OQPSK
@@ -44,7 +44,7 @@
 #endif
 
 #ifdef MODULE_NETDEV_IEEE802154_MR_FSK
-// #define TEST_FSK
+#define TEST_FSK
 #endif
 
 typedef struct {
@@ -596,16 +596,15 @@ void range_test_begin_measurement(kernel_pid_t netif)
 
     results[netif][idx].pkts_send++;
     if (results[netif][idx].rtt_ticks == 0) {
-        results[netif][idx].rtt_ticks = xtimer_ticks_from_usec(INITIAL_FRAME_DELAY_US).ticks32;
+        results[netif][idx].rtt_ticks = INITIAL_FRAME_DELAY_US;
     }
 }
 
-xtimer_ticks32_t range_test_get_timeout(kernel_pid_t netif)
+uint32_t range_test_get_timeout(kernel_pid_t netif)
 {
     netif -= RADIO_PID; // XXX
-    xtimer_ticks32_t t = {
-        .ticks32 = results[netif][idx].rtt_ticks + results[netif][idx].rtt_ticks / 10
-    };
+    uint32_t t = results[netif][idx].rtt_ticks
+               + results[netif][idx].rtt_ticks / 10;
 
     return t;
 }
@@ -629,9 +628,7 @@ void range_test_print_results(void)
     printf("modulation;iface;sent;received;LQI_local;LQI_remote;RSSI_local;RSSI_remote;RTT\n");
     for (unsigned i = 0; i < _get_combinations(); ++i) {
         for (int j = 0; j < GNRC_NETIF_NUMOF; ++j) {
-            xtimer_ticks32_t ticks = {
-                .ticks32 = results[j][i].rtt_ticks
-            };
+            uint32_t ticks = results[j][i].rtt_ticks;
 
             printf("\"");
             _set(i, false);

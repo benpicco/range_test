@@ -36,7 +36,7 @@ typedef struct {
 
 void range_test_start(void);
 bool range_test_set_next_modulation(void);
-xtimer_ticks32_t range_test_get_timeout(kernel_pid_t netif);
+uint32_t range_test_get_timeout(kernel_pid_t netif);
 
 void range_test_begin_measurement(kernel_pid_t netif);
 void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
