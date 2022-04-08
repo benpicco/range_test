@@ -322,9 +322,9 @@ static test_result_t *results[GNRC_NETIF_NUMOF];
 static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
 {
     unsigned i = 0;
-    for (gnrc_netif_t *netif = gnrc_netif_iter(NULL); netif; netif = gnrc_netif_iter(netif)) {
-        if (gnrc_netapi_set(netif->pid, opt, 0, data, data_len) < 0) {
-            printf("[%d] failed setting %x to %x\n", netif->pid, opt, *(uint8_t*) data);
+    for (unsigned pid = range_test_radio_pid(); i < range_test_radio_numof(); ++pid) {
+        if (gnrc_netapi_set(pid, opt, 0, data, data_len) < 0) {
+            printf("[%d] failed setting %x to %x\n", pid, opt, *(uint8_t*) data);
 
             if (results[i]) {
                 results[i][idx].invalid = true;
@@ -584,7 +584,7 @@ static void _set_modulation(unsigned idx)
 
 void range_test_begin_measurement(kernel_pid_t netif)
 {
-    netif -= RADIO_PID; // XXX
+    netif -= range_test_radio_pid();
 
     if (results[netif] == NULL) {
         results[netif] = calloc(_get_combinations(), sizeof(test_result_t));
@@ -602,7 +602,7 @@ void range_test_begin_measurement(kernel_pid_t netif)
 
 uint32_t range_test_get_timeout(kernel_pid_t netif)
 {
-    netif -= RADIO_PID; // XXX
+    netif -= range_test_radio_pid();
     uint32_t t = results[netif][idx].rtt_ticks
                + results[netif][idx].rtt_ticks / 10;
 
@@ -613,7 +613,7 @@ void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
                                 int rssi_local, int rssi_remote,
                                 unsigned lqi_local, unsigned lqi_remote)
 {
-    netif -= RADIO_PID; // XXX
+    netif -= range_test_radio_pid();
 
     results[netif][idx].pkts_rcvd++;
     results[netif][idx].rssi_sum[0] += rssi_local;
@@ -627,7 +627,7 @@ void range_test_print_results(void)
 {
     printf("modulation;iface;sent;received;LQI_local;LQI_remote;RSSI_local;RSSI_remote;RTT\n");
     for (unsigned i = 0; i < _get_combinations(); ++i) {
-        for (int j = 0; j < GNRC_NETIF_NUMOF; ++j) {
+        for (unsigned j = 0; j < range_test_radio_numof(); ++j) {
             uint32_t ticks = results[j][i].rtt_ticks;
 
             printf("\"");

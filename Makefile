@@ -21,6 +21,10 @@ USEMODULE += gnrc_icmpv6_echo
 
 # USEMODULE += periph_uart_nonblocking
 
+ifeq (same54-xpro, $(BOARD))
+  USEMODULE += at86rf215
+endif
+
 USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += ps

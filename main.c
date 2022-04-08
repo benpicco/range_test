@@ -56,8 +56,10 @@ typedef struct {
     uint8_t type;
     int8_t rssi;
     uint8_t lqi;
-    uint16_t seq_no;
+    uint8_t _padding;
     uint32_t ticks;
+    uint16_t seq_no;
+    uint8_t payload[];
 } test_pingpong_t;
 
 static char test_server_stack[THREAD_STACKSIZE_MAIN];
@@ -73,6 +75,33 @@ size_t range_test_payload_size(void)
 uint32_t range_test_period_ms(void)
 {
     return (TEST_PERIOD * 1000) / RTT_FREQUENCY;
+}
+
+unsigned range_test_radio_pid(void)
+{
+    static kernel_pid_t radio_pid;
+
+    if (radio_pid == 0) {
+        gnrc_netif_t *netif = gnrc_netif_get_by_type(CONFIG_NETDEV_TYPE, 0);
+        if (netif) {
+            radio_pid = netif->pid;
+        }
+    }
+
+    return radio_pid;
+}
+
+unsigned range_test_radio_numof(void)
+{
+    static uint8_t radio_numof;
+
+    if (radio_numof == 0) {
+        while (gnrc_netif_get_by_type(CONFIG_NETDEV_TYPE, radio_numof) != NULL) {
+            ++radio_numof;
+        }
+    }
+
+    return radio_numof;
 }
 
 static void _rtt_alarm(void* ctx)
@@ -227,10 +256,10 @@ static int _range_test_cmd(int argc, char** argv)
 
     struct sender_ctx ctx[GNRC_NETIF_NUMOF];
 
-    for (int i = 0; i < GNRC_NETIF_NUMOF; ++i) {
+    for (unsigned i = 0; i < range_test_radio_numof(); ++i) {
         mutex_init(&ctx[i].mutex);
         mutex_lock(&ctx[i].mutex);
-        ctx[i].netif = RADIO_PID + i; // XXX
+        ctx[i].netif = range_test_radio_pid() + i;
         ctx[i].running = true;
         thread_create(test_sender_stack[i], sizeof(test_sender_stack[i]),
                       THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST,
@@ -241,12 +270,12 @@ static int _range_test_cmd(int argc, char** argv)
     rtt_set_alarm(last_alarm, _rtt_alarm, &mutex);
 
     do {
-        for (int i = 0; i < GNRC_NETIF_NUMOF; ++i)
+        for (unsigned i = 0; i < range_test_radio_numof(); ++i)
             mutex_unlock(&ctx[i].mutex);
 
         mutex_lock(&mutex);
 
-        for (int i = 0; i < GNRC_NETIF_NUMOF; ++i)
+        for (unsigned i = 0; i < range_test_radio_numof(); ++i)
             mutex_lock(&ctx[i].mutex);
 
         /* can't change the modulation if the radio is still sending */
@@ -254,7 +283,7 @@ static int _range_test_cmd(int argc, char** argv)
     } while (range_test_set_next_modulation());
 
 
-    for (int i = 0; i < GNRC_NETIF_NUMOF; ++i) {
+    for (unsigned i = 0; i < range_test_radio_numof(); ++i) {
         ctx[i].running = false;
         mutex_unlock(&ctx[i].mutex);
     }
@@ -390,6 +419,8 @@ static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
 
 int main(void)
 {
+    printf("radios: %u, first pid: %u\n", range_test_radio_numof(), range_test_radio_pid());
+
     msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
     thread_create(test_server_stack, sizeof(test_server_stack),
                   THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST,

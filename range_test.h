@@ -47,7 +47,11 @@ void range_test_print_results(void);
 uint32_t range_test_period_ms(void);
 size_t range_test_payload_size(void);
 
+unsigned range_test_radio_pid(void);
+unsigned range_test_radio_numof(void);
+
 #define GNRC_NETIF_NUMOF (2) // FIXME
-#define RADIO_PID        (5) /* XXX */
+
+#define CONFIG_NETDEV_TYPE  NETDEV_AT86RF215
 
 #endif
