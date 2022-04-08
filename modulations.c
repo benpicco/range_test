@@ -323,7 +323,9 @@ static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
 {
     unsigned i = 0;
     for (unsigned pid = range_test_radio_pid(); i < range_test_radio_numof(); ++pid) {
-        if (gnrc_netapi_set(pid, opt, 0, data, data_len) < 0) {
+        int res;
+        while ((res = gnrc_netapi_set(pid, opt, 0, data, data_len)) == -EBUSY) {}
+        if (res < 0) {
             printf("[%d] failed setting %x to %x\n", pid, opt, *(uint8_t*) data);
 
             if (results[i]) {
