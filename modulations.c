@@ -318,6 +318,11 @@ static const netopt_list_t fsk_fec = {
 };
 #endif
 
+static uint8_t _payload_idx;
+static const uint16_t payloads[] = {
+    16, 128, 512, 1024
+};
+
 static unsigned idx;
 static test_result_t *results[GNRC_NETIF_NUMOF];
 
@@ -326,12 +331,17 @@ static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
     unsigned i = 0;
     for (unsigned pid = range_test_radio_pid(); i < range_test_radio_numof(); ++pid) {
         int res;
-        while ((res = gnrc_netapi_set(pid, opt, 0, data, data_len)) == -EBUSY) {}
+        while ((res = gnrc_netapi_set(pid, opt, 0, data, data_len)) == -EBUSY) {
+            /* at86rf215 driver needs some time in busy state */
+            xtimer_msleep(1);
+        }
         if (res < 0) {
             printf("[%d] failed setting %x to %x\n", pid, opt, *(uint8_t*) data);
 
             if (results[i]) {
-                results[i][idx].invalid = true;
+                for (unsigned j = 0; j < ARRAY_SIZE(payloads); ++j) {
+                    results[i][idx + j].invalid = true;
+                }
             }
         }
         ++i;
@@ -588,60 +598,67 @@ static void _set_modulation(unsigned idx)
 
 void range_test_begin_measurement(kernel_pid_t netif)
 {
+    unsigned _idx = idx * ARRAY_SIZE(payloads) + _payload_idx;
     netif -= range_test_radio_pid();
 
     if (results[netif] == NULL) {
-        results[netif] = calloc(_get_combinations(), sizeof(test_result_t));
+        results[netif] = calloc(_get_combinations() * ARRAY_SIZE(payloads), sizeof(test_result_t));
         if (results[netif] == NULL) {
             puts("Out of memory!");
             return;
         }
     }
 
-    results[netif][idx].pkts_send++;
-    if (results[netif][idx].rtt_ticks == 0) {
-        results[netif][idx].rtt_ticks = INITIAL_FRAME_DELAY_US;
+    results[netif][_idx].pkts_send++;
+    if (results[netif][_idx].rtt_ticks == 0) {
+        results[netif][_idx].rtt_ticks = INITIAL_FRAME_DELAY_US;
     }
 }
 
 uint32_t range_test_get_timeout(kernel_pid_t netif)
 {
     netif -= range_test_radio_pid();
-    uint32_t t = results[netif][idx].rtt_ticks
-               + results[netif][idx].rtt_ticks / 10;
+
+    unsigned _idx = idx * ARRAY_SIZE(payloads) + _payload_idx;
+    uint32_t t = results[netif][_idx].rtt_ticks
+               + results[netif][_idx].rtt_ticks / 10;
 
     return MIN(t, 100 * US_PER_MS);
 }
 
 void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
                                 int rssi_local, int rssi_remote,
-                                unsigned lqi_local, unsigned lqi_remote)
+                                unsigned lqi_local, unsigned lqi_remote,
+                                uint16_t payload_size)
 {
+    unsigned _idx = idx * ARRAY_SIZE(payloads) + _payload_idx;
     netif -= range_test_radio_pid();
 
-    results[netif][idx].pkts_rcvd++;
-    results[netif][idx].rssi_sum[0] += rssi_local;
-    results[netif][idx].rssi_sum[1] += rssi_remote;
-    results[netif][idx].lqi_sum[0] += lqi_local;
-    results[netif][idx].lqi_sum[1] += lqi_remote;
-    results[netif][idx].rtt_ticks = (results[netif][idx].rtt_ticks + ticks) / 2;
+    results[netif][_idx].pkts_rcvd++;
+    results[netif][_idx].rssi_sum[0] += rssi_local;
+    results[netif][_idx].rssi_sum[1] += rssi_remote;
+    results[netif][_idx].lqi_sum[0] += lqi_local;
+    results[netif][_idx].lqi_sum[1] += lqi_remote;
+    results[netif][_idx].rtt_ticks = (results[netif][_idx].rtt_ticks + ticks) / 2;
+    results[netif][_idx].payload_size = payload_size;
 }
 
 void range_test_print_results(void)
 {
-    printf("modulation;iface;sent;received;LQI_local;LQI_remote;RSSI_local;RSSI_remote;RTT\n");
-    for (unsigned i = 0; i < _get_combinations(); ++i) {
+    printf("modulation;payload;iface;sent;received;LQI_local;LQI_remote;RSSI_local;RSSI_remote;RTT\n");
+    for (unsigned i = 0; i < _get_combinations() * ARRAY_SIZE(payloads); ++i) {
         for (unsigned j = 0; j < range_test_radio_numof(); ++j) {
             uint32_t ticks = results[j][i].rtt_ticks;
 
             printf("\"");
-            _set(i, false);
+            _set(i / ARRAY_SIZE(payloads), false);
             printf("\";");
 
             if (results[j][i].invalid) {
                 puts(" INVALID");
             } else {
                 printf("%d;", j);
+                printf("%d;", results[j][i].payload_size);
                 printf("%d;", results[j][i].pkts_send);
                 printf("%d;", results[j][i].pkts_rcvd);
                 printf("%ld;", results[j][i].lqi_sum[0] / results[j][i].pkts_rcvd);
@@ -650,8 +667,8 @@ void range_test_print_results(void)
                 printf("%ld;", results[j][i].rssi_sum[1] / results[j][i].pkts_rcvd);
                 printf("%ld", xtimer_usec_from_ticks(ticks));
                 printf("\t|\t%d %%", (100 * results[j][i].pkts_rcvd) / results[j][i].pkts_send);
-                printf(" max = %lu byte/s", range_test_payload_size() * US_PER_SEC / xtimer_usec_from_ticks(ticks));
-                printf(" avg = %lu byte/s", (results[j][i].pkts_rcvd * range_test_payload_size() * 1000) /
+                printf(" max = %lu byte/s", results[j][i].payload_size * US_PER_SEC / xtimer_usec_from_ticks(ticks));
+                printf(" avg = %lu byte/s", (results[j][i].pkts_rcvd * results[j][i].payload_size * 1000) /
                                             range_test_period_ms());
                 puts("");
             }
@@ -663,8 +680,19 @@ void range_test_print_results(void)
     range_test_start();
 }
 
+uint16_t range_test_payload_size(void)
+{
+    return payloads[_payload_idx];
+}
+
 bool range_test_set_next_modulation(void)
 {
+    if (++_payload_idx < ARRAY_SIZE(payloads)) {
+        printf("\tusing %u byte payload\n", range_test_payload_size());
+        return true;
+    }
+    _payload_idx = 0;
+
     if (++idx >= _get_combinations()) {
         return false;
     }

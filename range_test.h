@@ -31,6 +31,7 @@ typedef struct {
     int32_t rssi_sum[2];
     uint32_t lqi_sum[2];
     uint32_t rtt_ticks;
+    uint16_t payload_size;
     bool invalid;
 } test_result_t;
 
@@ -41,11 +42,12 @@ uint32_t range_test_get_timeout(kernel_pid_t netif);
 void range_test_begin_measurement(kernel_pid_t netif);
 void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
                                 int rssi_local, int rssi_remote,
-                                unsigned lqi_local, unsigned lqi_remote);
+                                unsigned lqi_local, unsigned lqi_remote,
+                                uint16_t payload_size);
 void range_test_print_results(void);
 
 uint32_t range_test_period_ms(void);
-size_t range_test_payload_size(void);
+uint16_t range_test_payload_size(void);
 
 unsigned range_test_radio_pid(void);
 unsigned range_test_radio_numof(void);

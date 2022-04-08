@@ -40,6 +40,8 @@
 #define TEST_PORT   (2323)
 #define QUEUE_SIZE  (4)
 
+#define MAX(a, b) ((a) < (b) ? (b) : (a))
+
 enum {
     TEST_HELLO,
     TEST_HELLO_ACK,
@@ -66,11 +68,6 @@ static char test_server_stack[THREAD_STACKSIZE_MAIN];
 static char test_sender_stack[GNRC_NETIF_NUMOF][THREAD_STACKSIZE_MAIN];
 
 static volatile uint32_t last_alarm;
-
-size_t range_test_payload_size(void)
-{
-    return sizeof(test_pingpong_t);
-}
 
 uint32_t range_test_period_ms(void)
 {
@@ -172,14 +169,15 @@ static bool _udp_reply(gnrc_pktsnip_t *pkt_in, void* data, size_t len)
     return _udp_send(netif->if_pid, &ip->src, byteorder_ntohs(udp->src_port), data, len);
 }
 
-static bool _send_ping(int netif, const ipv6_addr_t* addr, uint16_t port)
+static bool _send_ping(int netif, const ipv6_addr_t* addr, uint16_t port, uint16_t size)
 {
     test_pingpong_t ping = {
         .type = TEST_PING,
         .ticks = xtimer_now()
     };
 
-    return _udp_send(netif, addr, port, &ping, sizeof(ping));
+    size = MAX(size, sizeof(ping));
+    return _udp_send(netif, addr, port, &ping, size);
 }
 
 static kernel_pid_t sender_pid;
@@ -213,8 +211,9 @@ static void* range_test_sender(void *arg)
             break;
         }
 
-        if (!_send_ping(ctx->netif, &ipv6_addr_all_nodes_link_local, TEST_PORT)) {
-            puts("UDP send failed!");
+        if (!_send_ping(ctx->netif, &ipv6_addr_all_nodes_link_local,
+                        TEST_PORT, range_test_payload_size())) {
+            printf("send failed, payload %u\n", range_test_payload_size());
             break;
         }
 
@@ -389,7 +388,8 @@ static void* range_test_server(void *arg)
             int8_t rssi = 0;
             _get_rssi(pkt, &netif, &lqi, &rssi);
             range_test_add_measurement(netif, xtimer_now() - pp->ticks,
-                                       rssi, pp->rssi, lqi, pp->lqi);
+                                       rssi, pp->rssi, lqi, pp->lqi,
+                                       pkt->size);
             break;
         }
         default:
@@ -407,7 +407,7 @@ static int _do_ping(int argc, char** argv)
     (void) argc;
     (void) argv;
 
-    return !_send_ping(0, &ipv6_addr_all_nodes_link_local, TEST_PORT);
+    return !_send_ping(0, &ipv6_addr_all_nodes_link_local, TEST_PORT, 16);
 }
 
 static const shell_command_t shell_commands[] = {
