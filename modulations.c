@@ -47,6 +47,8 @@
 #define TEST_FSK
 #endif
 
+#define MIN(a, b) ((a) > (b) ? (b) : (a))
+
 typedef struct {
     netopt_t opt;
     uint32_t data;
@@ -608,7 +610,7 @@ uint32_t range_test_get_timeout(kernel_pid_t netif)
     uint32_t t = results[netif][idx].rtt_ticks
                + results[netif][idx].rtt_ticks / 10;
 
-    return t;
+    return MIN(t, 100 * US_PER_MS);
 }
 
 void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,

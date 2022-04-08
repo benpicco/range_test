@@ -222,7 +222,7 @@ static void* range_test_sender(void *arg)
 
         mutex_unlock(&ctx->mutex);
 //        printf("[%d] will sleep for %ld µs\n", ctx->netif, xtimer_usec_from_ticks(range_test_get_timeout(ctx->netif)));
-        xtimer_tsleep32(range_test_get_timeout(ctx->netif));
+        xtimer_usleep(range_test_get_timeout(ctx->netif));
     }
 
     return arg;
@@ -270,16 +270,18 @@ static int _range_test_cmd(int argc, char** argv)
     rtt_set_alarm(last_alarm, _rtt_alarm, &mutex);
 
     do {
-        for (unsigned i = 0; i < range_test_radio_numof(); ++i)
+        for (unsigned i = 0; i < range_test_radio_numof(); ++i) {
             mutex_unlock(&ctx[i].mutex);
+        }
 
         mutex_lock(&mutex);
 
-        for (unsigned i = 0; i < range_test_radio_numof(); ++i)
+        for (unsigned i = 0; i < range_test_radio_numof(); ++i) {
             mutex_lock(&ctx[i].mutex);
+        }
 
         /* can't change the modulation if the radio is still sending */
-        xtimer_usleep(100000);
+        xtimer_msleep(250);
     } while (range_test_set_next_modulation());
 
 
