@@ -29,8 +29,6 @@
 #include "shell_commands.h"
 #include "range_test.h"
 
-#define INITIAL_FRAME_DELAY_US  (200000) /* 200 ms */
-
 #ifdef MODULE_NETDEV_IEEE802154_MR_OFDM
 #define TEST_OFDM
 #endif
@@ -322,6 +320,11 @@ static uint8_t _payload_idx;
 static const uint16_t payloads[] = {
     16, 128, 512, 1024
 };
+/* tx times based on slowest modulation */
+/* since we can't get proper TX confirmatio from RIOT :( */
+static const uint32_t max_delay_ms[] = {
+    185, 500, 1600, 3000
+};
 
 static unsigned idx;
 static test_result_t *results[GNRC_NETIF_NUMOF];
@@ -611,7 +614,7 @@ void range_test_begin_measurement(kernel_pid_t netif)
 
     results[netif][_idx].pkts_send++;
     if (results[netif][_idx].rtt_ticks == 0) {
-        results[netif][_idx].rtt_ticks = INITIAL_FRAME_DELAY_US;
+        results[netif][_idx].rtt_ticks = max_delay_ms[_payload_idx] * US_PER_MS;
     }
 }
 
@@ -623,7 +626,7 @@ uint32_t range_test_get_timeout(kernel_pid_t netif)
     uint32_t t = results[netif][_idx].rtt_ticks
                + results[netif][_idx].rtt_ticks / 10;
 
-    return MIN(t, 100 * US_PER_MS);
+    return t;
 }
 
 void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
@@ -639,7 +642,7 @@ void range_test_add_measurement(kernel_pid_t netif, uint32_t ticks,
     results[netif][_idx].rssi_sum[1] += rssi_remote;
     results[netif][_idx].lqi_sum[0] += lqi_local;
     results[netif][_idx].lqi_sum[1] += lqi_remote;
-    results[netif][_idx].rtt_ticks = (results[netif][_idx].rtt_ticks + ticks) / 2;
+    results[netif][_idx].rtt_ticks = ticks;
     results[netif][_idx].payload_size = payload_size;
 }
 
@@ -667,7 +670,7 @@ void range_test_print_results(void)
                 printf("%ld;", results[j][i].rssi_sum[1] / results[j][i].pkts_rcvd);
                 printf("%ld", xtimer_usec_from_ticks(ticks));
                 printf("\t|\t%d %%", (100 * results[j][i].pkts_rcvd) / results[j][i].pkts_send);
-                printf(" max = %lu byte/s", results[j][i].payload_size * US_PER_SEC / xtimer_usec_from_ticks(ticks));
+                printf(" max = %lu byte/s", (results[j][i].payload_size * US_PER_SEC) / ticks);
                 printf(" avg = %lu byte/s", (results[j][i].pkts_rcvd * results[j][i].payload_size * 1000) /
                                             range_test_period_ms());
                 puts("");

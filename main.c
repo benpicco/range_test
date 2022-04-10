@@ -28,6 +28,7 @@
 #include "net/gnrc/ipv6.h"
 #include "net/gnrc/udp.h"
 #include "periph/gpio.h"
+#include "sema_inv.h"
 
 #include "shell.h"
 #include "shell_commands.h"
@@ -67,6 +68,7 @@ typedef struct {
 static char test_server_stack[THREAD_STACKSIZE_MAIN];
 static char test_sender_stack[GNRC_NETIF_NUMOF][THREAD_STACKSIZE_MAIN];
 
+static sema_inv_t _batch_done;
 static volatile uint32_t last_alarm;
 
 uint32_t range_test_period_ms(void)
@@ -194,9 +196,10 @@ static bool _send_hello(int netif, const ipv6_addr_t* addr, uint16_t port)
 }
 
 struct sender_ctx {
-    bool running;
     mutex_t mutex;
     uint16_t netif;
+    uint8_t idx;
+    bool running;
 };
 
 static void* range_test_sender(void *arg)
@@ -205,6 +208,7 @@ static void* range_test_sender(void *arg)
     struct sender_ctx *ctx = arg;
     while (ctx->running) {
 
+        sema_inv_post_mask(&_batch_done, 1 << ctx->idx);
         mutex_lock(&ctx->mutex);
 
         if (!ctx->running) {
@@ -254,11 +258,15 @@ static int _range_test_cmd(int argc, char** argv)
     printf("Handshake complete after %d tries\n", HELLO_RETRIES - tries);
 
     struct sender_ctx ctx[GNRC_NETIF_NUMOF];
+    uint32_t sender_msk = 0;
 
     for (unsigned i = 0; i < range_test_radio_numof(); ++i) {
+        sender_msk |= 1 << i;
+
         mutex_init(&ctx[i].mutex);
         mutex_lock(&ctx[i].mutex);
         ctx[i].netif = range_test_radio_pid() + i;
+        ctx[i].idx = i;
         ctx[i].running = true;
         thread_create(test_sender_stack[i], sizeof(test_sender_stack[i]),
                       THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST,
@@ -274,13 +282,14 @@ static int _range_test_cmd(int argc, char** argv)
         }
 
         mutex_lock(&mutex);
+        sema_inv_init(&_batch_done, sender_msk);
 
         for (unsigned i = 0; i < range_test_radio_numof(); ++i) {
             mutex_lock(&ctx[i].mutex);
         }
 
         /* can't change the modulation if the radio is still sending */
-        xtimer_msleep(250);
+        sema_inv_wait(&_batch_done);
     } while (range_test_set_next_modulation());
 
 
@@ -338,6 +347,8 @@ static void* range_test_server(void *arg)
     while (1) {
         msg_receive(&msg);
         gnrc_pktsnip_t *pkt = msg.content.ptr;
+
+        LED0_TOGGLE;
 
         test_hello_t *hello = pkt->data;
         test_pingpong_t *pp = pkt->data;
