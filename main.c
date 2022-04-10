@@ -66,8 +66,8 @@ typedef struct {
 } test_pingpong_t;
 
 static char test_server_stack[THREAD_STACKSIZE_MAIN];
-static char test_coordinator_stack[THREAD_STACKSIZE_MAIN * 2];
-static char test_sender_stack[GNRC_NETIF_NUMOF][THREAD_STACKSIZE_MAIN];
+static char test_coordinator_stack[THREAD_STACKSIZE_MAIN];
+static char test_sender_stack[GNRC_NETIF_NUMOF][THREAD_STACKSIZE_SMALL];
 
 static mutex_t _test_start = MUTEX_INIT_LOCKED;
 static sema_inv_t _batch_done;

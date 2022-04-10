@@ -18,7 +18,9 @@ USEMODULE += gnrc_ipv6_default
 USEMODULE += gnrc_udp
 
 USEMODULE += gnrc_icmpv6_echo
+USEMODULE += sema_inv
 
+USEMODULE += ztimer_no_periph_rtt
 # USEMODULE += periph_uart_nonblocking
 
 ifeq (same54-xpro, $(BOARD))
