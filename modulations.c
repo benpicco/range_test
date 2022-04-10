@@ -45,8 +45,6 @@
 #define TEST_FSK
 #endif
 
-#define MIN(a, b) ((a) > (b) ? (b) : (a))
-
 typedef struct {
     netopt_t opt;
     uint32_t data;
@@ -328,6 +326,85 @@ static const uint32_t max_delay_ms[] = {
 
 static unsigned idx;
 static test_result_t *results[GNRC_NETIF_NUMOF];
+
+#ifdef MODULE_VFS_DEFAULT
+#include <fcntl.h>
+#include "vfs_default.h"
+
+#ifndef DATA_DIR
+#define DATA_DIR VFS_DEFAULT_DATA "/range"
+#endif
+
+static int _result_fd;
+
+static ssize_t vfs_write_string(int fd, const char *src)
+{
+    return vfs_write(fd, src, strlen(src));
+}
+
+static void file_store_open(unsigned num)
+{
+    char buffer[48];
+
+    if (_result_fd != 0) {
+        vfs_close(_result_fd);
+    }
+
+    vfs_mkdir(DATA_DIR, 0777);
+    snprintf(buffer, sizeof(buffer), DATA_DIR "/%u.csv", num);
+
+    _result_fd = vfs_open(buffer, O_CREAT | O_WRONLY, 0644);
+    if (_result_fd < 0) {
+        printf("can't create file: %d\n", _result_fd);
+        return;
+    }
+
+    vfs_write_string(_result_fd,
+                     "modulation;iface;payload;sent;received;RSSI_local;RSSI_remote;RTT\n");
+}
+
+static void file_store_close(void)
+{
+    if (_result_fd <= 0) {
+        return;
+    }
+
+    vfs_close(_result_fd);
+    _result_fd = 0;
+}
+
+static void file_store_add(unsigned iface, test_result_t *result)
+{
+    static char line[128];
+
+    if (_result_fd <= 0) {
+        return;
+    }
+
+    if (result->invalid) {
+        return;
+    }
+
+    snprintf(line, sizeof(line), "%s;%u;%u;%u;%u;%d;%d;%u µs\n",
+             "TODO",
+             iface,
+             result->payload_size,
+             result->pkts_send,
+             result->pkts_rcvd,
+             (int)(result->rssi_sum[0] / result->pkts_rcvd),
+             (int)(result->rssi_sum[1] / result->pkts_rcvd),
+             (unsigned)result->rtt_ticks);
+    vfs_write_string(_result_fd, line);
+}
+#else
+static inline void file_store_open(unsigned num) { (void)num; }
+static inline void file_store_close(void) {}
+static inline void file_store_add(unsigned iface, test_result_t *result)
+{
+    (void)iface;
+    (void)result;
+}
+#endif
 
 static void _netapi_set_forall(netopt_t opt, const void *data, size_t data_len)
 {
@@ -690,6 +767,10 @@ uint16_t range_test_payload_size(void)
 
 bool range_test_set_next_modulation(void)
 {
+    for (unsigned i = 0; i < range_test_radio_numof(); ++i) {
+        file_store_add(i, &results[i][idx * ARRAY_SIZE(payloads) + _payload_idx]);
+    }
+
     if (++_payload_idx < ARRAY_SIZE(payloads)) {
         printf("\tusing %u byte payload\n", range_test_payload_size());
         return true;
@@ -705,7 +786,7 @@ bool range_test_set_next_modulation(void)
     return true;
 }
 
-void range_test_start(void)
+void range_test_init(void)
 {
     idx = 0;
     netopt_enable_t disable = NETOPT_DISABLE;
@@ -714,4 +795,15 @@ void range_test_start(void)
     LED0_OFF;
 
     _set_modulation(idx);
+}
+
+void range_test_start(void)
+{
+    static unsigned count;
+    file_store_open(count++);
+}
+
+void range_test_end(void)
+{
+    file_store_close();
 }

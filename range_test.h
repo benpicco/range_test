@@ -35,7 +35,9 @@ typedef struct {
     bool invalid;
 } test_result_t;
 
+void range_test_init(void);
 void range_test_start(void);
+void range_test_end(void);
 bool range_test_set_next_modulation(void);
 uint32_t range_test_get_timeout(kernel_pid_t netif);
 

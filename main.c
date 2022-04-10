@@ -257,6 +257,8 @@ static int _range_test_cmd(int argc, char** argv)
 
     printf("Handshake complete after %d tries\n", HELLO_RETRIES - tries);
 
+    range_test_start();
+
     struct sender_ctx ctx[GNRC_NETIF_NUMOF];
     uint32_t sender_msk = 0;
 
@@ -300,6 +302,7 @@ static int _range_test_cmd(int argc, char** argv)
 
     rtt_clear_alarm();
 
+    range_test_end();
     range_test_print_results();
 
     xtimer_sleep(1);
@@ -364,7 +367,7 @@ static void* range_test_server(void *arg)
             if (!range_test_set_next_modulation()) {
                 rtt_clear_alarm();
                 puts("Test done.");
-                range_test_start();
+                range_test_init();
             }
             continue;
         }
@@ -439,7 +442,7 @@ int main(void)
                   THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST,
                   range_test_server, NULL, "range test");
 
-    range_test_start();
+    range_test_init();
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
