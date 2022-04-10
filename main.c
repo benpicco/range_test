@@ -66,8 +66,10 @@ typedef struct {
 } test_pingpong_t;
 
 static char test_server_stack[THREAD_STACKSIZE_MAIN];
+static char test_coordinator_stack[THREAD_STACKSIZE_MAIN * 2];
 static char test_sender_stack[GNRC_NETIF_NUMOF][THREAD_STACKSIZE_MAIN];
 
+static mutex_t _test_start = MUTEX_INIT_LOCKED;
 static sema_inv_t _batch_done;
 static volatile uint32_t last_alarm;
 
@@ -231,11 +233,8 @@ static void* range_test_sender(void *arg)
     return arg;
 }
 
-static int _range_test_cmd(int argc, char** argv)
+static int _do_range_test(void)
 {
-    (void) argc;
-    (void) argv;
-
     mutex_t mutex = MUTEX_INIT_LOCKED;
 
     msg_t m;
@@ -306,6 +305,18 @@ static int _range_test_cmd(int argc, char** argv)
     range_test_print_results();
 
     xtimer_sleep(1);
+
+    return 0;
+}
+
+static void *range_test_coordinator(void *ctx)
+{
+    (void)ctx;
+
+    while (1) {
+        mutex_lock(&_test_start);
+        _do_range_test();
+    }
 
     return 0;
 }
@@ -416,6 +427,20 @@ static void* range_test_server(void *arg)
     return arg;
 }
 
+static inline void _btn_cb(void *ctx)
+{
+    mutex_unlock(ctx);
+}
+
+static int _range_test_cmd(int argc, char** argv)
+{
+    (void) argc;
+    (void) argv;
+
+    mutex_unlock(&_test_start);
+    return 0;
+}
+
 static int _do_ping(int argc, char** argv)
 {
     (void) argc;
@@ -442,7 +467,15 @@ int main(void)
                   THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST,
                   range_test_server, NULL, "range test");
 
+    thread_create(test_coordinator_stack, sizeof(test_coordinator_stack),
+                  THREAD_PRIORITY_MAIN, THREAD_CREATE_STACKTEST,
+                  range_test_coordinator, NULL, "range test sender");
+
+
     range_test_init();
+#ifdef BTN0_PIN
+    gpio_init_int(BTN0_PIN, BTN0_MODE, GPIO_FALLING, _btn_cb, &_test_start);
+#endif
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
