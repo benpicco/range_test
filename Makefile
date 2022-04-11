@@ -25,6 +25,7 @@ USEMODULE += ztimer_no_periph_rtt
 
 ifeq (same54-xpro, $(BOARD))
   USEMODULE += at86rf215
+  USEMODULE += vfs_default
 endif
 
 USEMODULE += shell
@@ -33,6 +34,20 @@ USEMODULE += ps
 
 USEMODULE += periph_rtt
 USEMODULE += xtimer
+
+USEMODULE += rtt_rtc
+
+# enable to only test sub-GHz radio
+#USEMODULE += at86rf215_subghz
+
+# selectively disable modulations to test
+#DISABLE_MODULE += netdev_ieee802154_oqpsk
+#DISABLE_MODULE += netdev_ieee802154_mr_oqpsk
+#DISABLE_MODULE += netdev_ieee802154_mr_ofdm
+#DISABLE_MODULE += netdev_ieee802154_mr_fsk
+
+# blocking send can lead to hangs
+DISABLE_MODULE += at86rf215_blocking_send
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
