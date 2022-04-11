@@ -68,6 +68,9 @@ typedef struct {
     } settings[];
 } netopt_list_t;
 
+__attribute__((unused))
+static int _print(char *str, size_t len, unsigned idx);
+
 #ifdef TEST_OFDM
 static const netopt_list_t ofdm_options = {
     .name = "option",
@@ -385,8 +388,10 @@ static void file_store_add(unsigned iface, test_result_t *result)
         return;
     }
 
-    snprintf(line, sizeof(line), "%s;%u;%u;%u;%u;%d;%d;%u µs\n",
-             "TODO",
+    line[0] = '"';
+    int res = _print(&line[1], sizeof(line) - 1, idx) + 1;
+
+    snprintf(&line[res], sizeof(line) - res, "\";%u;%u;%u;%u;%d;%d;%u\n",
              iface,
              result->payload_size,
              result->pkts_send,
@@ -436,6 +441,18 @@ static void _set_from_netopt_list(const netopt_list_t *l, unsigned idx, bool do_
     }
 }
 
+static int _print_from_netopt_list(char *str, size_t size, const netopt_list_t *l, unsigned idx)
+{
+    return snprintf(str, size, "%s = %s", l->name, l->settings[idx].name);
+}
+
+static int _advance_str(char **str, size_t *len, int res)
+{
+    *str += res;
+    *len -= res;
+    return res;
+}
+
 #ifdef TEST_OFDM
 static unsigned _get_OFDM_combinations(void)
 {
@@ -464,9 +481,40 @@ static int _set_OFDM(unsigned setting, bool do_set)
 
     return -1;
 }
+
+static int _print_OFDM(char *str, size_t len, unsigned setting)
+{
+    for (unsigned i = 0; i < ofdm_options.num_settings; ++i) {
+        for (unsigned j = 0; j < ofdm_mcs.num_settings; ++j) {
+            if (setting-- == 0) {
+                int res, total = 0;
+                res = snprintf(str, len, "OFDM ");
+                total += _advance_str(&str, &len, res);
+                res = _print_from_netopt_list(str, len, &ofdm_options, i);
+                total += _advance_str(&str, &len, res);
+                res = snprintf(str, len, ", ");
+                total += _advance_str(&str, &len, res);
+                res = _print_from_netopt_list(str, len, &ofdm_mcs, j);
+                total += _advance_str(&str, &len, res);
+                return total;
+            }
+        }
+    }
+
+    return 0;
+}
 #else
 static unsigned _get_OFDM_combinations(void)
 {
+    return 0;
+}
+
+static int _print_OFDM(char *str, size_t len, unsigned setting)
+{
+    (void)str;
+    (void)len;
+    (void)setting;
+
     return 0;
 }
 
@@ -507,9 +555,40 @@ static int _set_OQPSK(unsigned setting, bool do_set)
 
     return -1;
 }
+
+static int _print_OQPSK(char *str, size_t len, unsigned setting)
+{
+    for (unsigned i = 0; i < oqpsk_rates.num_settings; ++i) {
+        for (unsigned j = 0; j < oqpsk_chips.num_settings; ++j) {
+            if (setting-- == 0) {
+                int res, total = 0;
+                res = snprintf(str, len, "O-QPSK ");
+                total += _advance_str(&str, &len, res);
+                res = _print_from_netopt_list(str, len, &oqpsk_rates, i);
+                total += _advance_str(&str, &len, res);
+                res = snprintf(str, len, ", ");
+                total += _advance_str(&str, &len, res);
+                res = _print_from_netopt_list(str, len, &oqpsk_chips, j);
+                total += _advance_str(&str, &len, res);
+                return total;
+            }
+        }
+    }
+
+    return 0;
+}
 #else
 static unsigned _get_OQPSK_combinations(void)
 {
+    return 0;
+}
+
+static int _print_OQPSK(char *str, size_t len, unsigned setting)
+{
+    (void)str;
+    (void)len;
+    (void)setting;
+
     return 0;
 }
 
@@ -540,7 +619,33 @@ static int _set_legacy_OQPSK(unsigned setting, bool do_set)
 
     return -1;
 }
+
+static int _print_legacy_OQPSK(char *str, size_t len, unsigned setting)
+{
+    for (unsigned i = 0; i < legacy_oqpsk_rates.num_settings; ++i) {
+        if (setting-- == 0) {
+                int res, total = 0;
+                res = snprintf(str, len, "O-QPSK ");
+                total += _advance_str(&str, &len, res);
+                res = _print_from_netopt_list(str, len, &legacy_oqpsk_rates, i);
+                total += _advance_str(&str, &len, res);
+                return total;
+        }
+    }
+
+    return 0;
+}
+
 #else
+static int _print_legacy_OQPSK(char *str, size_t len, unsigned setting)
+{
+    (void)str;
+    (void)len;
+    (void)setting;
+
+    return 0;
+}
+
 static unsigned _get_legacy_OQPSK_combinations(void)
 {
     return 0;
@@ -592,6 +697,40 @@ static int _set_FSK(unsigned setting, bool do_set)
 
     return -1;
 }
+
+static int _print_FSK(char *str, size_t len, unsigned setting)
+{
+    for (unsigned i = 0; i < oqpsk_rates.num_settings; ++i) {
+        for (unsigned j = 0; j < oqpsk_chips.num_settings; ++j) {
+            for (unsigned k = 0; k < fsk_mord.num_settings; ++k) {
+                for (unsigned l = 0; l < fsk_fec.num_settings; ++l) {
+                    if (setting-- == 0) {
+                        int res, total = 0;
+                        res = snprintf(str, len, "FSK ");
+                        total += _advance_str(&str, &len, res);
+                        res = _print_from_netopt_list(str, len, &fsk_srate, i);
+                        total += _advance_str(&str, &len, res);
+                        res = snprintf(str, len, ", ");
+                        total += _advance_str(&str, &len, res);
+                        res = _print_from_netopt_list(str, len, &fsk_idx, j);
+                        total += _advance_str(&str, &len, res);
+                        res = snprintf(str, len, ", ");
+                        total += _advance_str(&str, &len, res);
+                        res = _print_from_netopt_list(str, len, &fsk_mord, k);
+                        total += _advance_str(&str, &len, res);
+                        res = snprintf(str, len, ", ");
+                        total += _advance_str(&str, &len, res);
+                        res = _print_from_netopt_list(str, len, &fsk_fec, l);
+                        total += _advance_str(&str, &len, res);
+                        return total;
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
+}
 #else
 static unsigned _get_FSK_combinations(void)
 {
@@ -604,6 +743,15 @@ static int _set_FSK(unsigned setting, bool do_set)
     (void) do_set;
 
     return -1;
+}
+
+static int _print_FSK(char *str, size_t len, unsigned setting)
+{
+    (void)str;
+    (void)len;
+    (void)setting;
+
+    return 0;
 }
 #endif  /* OFDM */
 
@@ -640,6 +788,35 @@ static int _set(unsigned idx, bool do_set)
     }
 
     return -1;
+}
+
+static int _print(char *str, size_t len, unsigned idx)
+{
+    if (idx < _get_OQPSK_combinations()) {
+        return _print_OQPSK(str, len, idx);
+    } else {
+        idx -= _get_OQPSK_combinations();
+    }
+
+    if (idx < _get_legacy_OQPSK_combinations()) {
+        return _print_legacy_OQPSK(str, len, idx);
+    } else {
+        idx -= _get_legacy_OQPSK_combinations();
+    }
+
+    if (idx < _get_OFDM_combinations()) {
+        return _print_OFDM(str, len, idx);
+    } else {
+        idx -= _get_OFDM_combinations();
+    }
+
+    if (idx < _get_FSK_combinations()) {
+        return _print_FSK(str, len, idx);
+    } else {
+        idx -= _get_FSK_combinations();
+    }
+
+    return 0;
 }
 
 static void _set_modulation(unsigned idx)
@@ -806,4 +983,5 @@ void range_test_start(void)
 void range_test_end(void)
 {
     file_store_close();
+    LED0_OFF;
 }
