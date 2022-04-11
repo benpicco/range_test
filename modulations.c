@@ -965,12 +965,11 @@ bool range_test_set_next_modulation(void)
 
 void range_test_init(void)
 {
-    idx = 0;
     netopt_enable_t disable = NETOPT_DISABLE;
     _netapi_set_forall(NETOPT_ACK_REQ, &disable, sizeof(disable));
 
+    idx = 0;
     LED0_OFF;
-
     _set_modulation(idx);
 }
 
@@ -983,5 +982,8 @@ void range_test_start(void)
 void range_test_end(void)
 {
     file_store_close();
+
+    idx = 0;
     LED0_OFF;
+    _set_modulation(idx);
 }
