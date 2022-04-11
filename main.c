@@ -53,6 +53,7 @@ enum {
 typedef struct {
     uint8_t type;
     uint32_t now;
+    uint32_t period;
 } test_hello_t;
 
 typedef struct {
@@ -72,10 +73,11 @@ static char test_sender_stack[GNRC_NETIF_NUMOF][THREAD_STACKSIZE_SMALL];
 static mutex_t _test_start = MUTEX_INIT_LOCKED;
 static sema_inv_t _batch_done;
 static volatile uint32_t last_alarm;
+static uint32_t test_period = TEST_PERIOD;
 
 uint32_t range_test_period_ms(void)
 {
-    return (TEST_PERIOD * 1000) / RTT_FREQUENCY;
+    return (test_period * 1000) / RTT_FREQUENCY;
 }
 
 unsigned range_test_radio_pid(void)
@@ -107,7 +109,7 @@ unsigned range_test_radio_numof(void)
 
 static void _rtt_alarm(void* ctx)
 {
-    last_alarm += TEST_PERIOD;
+    last_alarm += test_period;
     rtt_set_alarm(last_alarm, _rtt_alarm, ctx);
 
     mutex_unlock(ctx);
@@ -188,7 +190,8 @@ static kernel_pid_t sender_pid;
 static bool _send_hello(int netif, const ipv6_addr_t* addr, uint16_t port)
 {
     test_hello_t hello = {
-        .type = TEST_HELLO,
+        .type   = TEST_HELLO,
+        .period = test_period,
     };
 
     sender_pid = thread_getpid();
@@ -274,7 +277,7 @@ static int _do_range_test(void)
                       range_test_sender, &ctx[i], "pinger");
     }
 
-    last_alarm = rtt_get_counter() + TEST_PERIOD;
+    last_alarm = rtt_get_counter() + test_period;
     rtt_set_alarm(last_alarm, _rtt_alarm, &mutex);
 
     do {
@@ -330,7 +333,7 @@ static void _rtt_next_setting(void* arg)
         .type = CUSTOM_MSG_TYPE_NEXT_SETTING
     };
 
-    last_alarm += TEST_PERIOD;
+    last_alarm += test_period;
     rtt_set_alarm(last_alarm, _rtt_next_setting, arg);
 
     msg_send(&m, ctx->target.pid);
@@ -386,13 +389,14 @@ static void* range_test_server(void *arg)
         switch (pp->type) {
         case TEST_HELLO:
             rtt_set_counter(hello->now);
+            test_period = hello->period;
 
             pp->type = TEST_HELLO_ACK;
             _udp_reply(pkt, pkt->data, pkt->size);
 
             LED0_ON;
 
-            last_alarm = rtt_get_counter() + TEST_PERIOD;
+            last_alarm = rtt_get_counter() + test_period;
             rtt_set_alarm(last_alarm, _rtt_next_setting, &ctx);
 
             break;
