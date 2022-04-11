@@ -438,8 +438,14 @@ static inline void _btn_cb(void *ctx)
 
 static int _range_test_cmd(int argc, char** argv)
 {
-    (void) argc;
-    (void) argv;
+    if (argc > 1) {
+        int period = atoi(argv[1]);
+        if (period == 0) {
+            printf("usage: %s [period]\n", argv[0]);
+            return -1;
+        }
+        test_period = period * RTT_FREQUENCY;
+    }
 
     mutex_unlock(&_test_start);
     return 0;
